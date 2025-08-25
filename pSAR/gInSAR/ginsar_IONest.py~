@@ -1,0 +1,438 @@
+#!/usr/bin/env python
+#
+#
+import sys
+import os
+import glob
+import pSAR
+import pSLC   
+import pGAMMA
+import pION
+import numpy as np
+import shutil
+import matplotlib.pyplot as plt
+#
+def ion(dint_low,dint_high):
+    '''
+    Generate a ionospheric component from one low-frequency interferogram and 
+    another high-frequency interferogram
+    The way used in this function was proposed by 
+    
+    Gomba, G., Parizzi, A., Zan, F. De, Eineder, M., Bamler, R., 2016. 
+    Toward Operational Compensation of Ionospheric Effects in SAR Interferograms: 
+    The Split-Spectrum Method. IEEE Trans. Geosci. Remote Sens. 
+    54, 1446–1461. doi:10.1109/TGRS.2015.2481079
+
+    by Wanpeng Feng, @CCRS/NRCan, 2017-08-28
+    ''' 
+    #
+    #
+    unw_low = glob.glob(dint_low+'/DINT*/*.adf.unw')[0]
+    unw_high= glob.glob(dint_high+'/DINT*/*.adf.unw')[0]
+    lowname = os.path.basename(unw_low)
+    masterdate = lowname[0:8]
+    #  
+    # update individual frequency
+    #
+    LOWslcpar = glob.glob(dint_low+'/RSLC*/%s*.par' % masterdate)[0]
+    info = pGAMMA.gamma_slcpar(LOWslcpar)
+    # low band
+    LOWslc    = glob.glob(dint_low+'/RSLC*/%s*.rslc' % masterdate)[0]
+    freqs = pGAMMA.gamma_slcpar2freqs(LOWslcpar)
+    LOWwid,LOWmean = pSLC.gSLC_bandwidth(LOWslc,sample_lines=100,bigendian=True,threshold=10)
+    fl = freqs[0]  #+ LOWmean
+    bw = freqs[2]
+    #
+    SPL = 299792458
+    # 
+    wl_L = SPL / fl * 100.
+    #
+    # high band
+    HIGHslcpar = glob.glob(dint_high+'/RSLC*/%s*.par' % masterdate)[0]
+    HIGHslc    = glob.glob(dint_high+'/RSLC*/%s*.rslc' % masterdate)[0]
+    #
+    freqs = pGAMMA.gamma_slcpar2freqs(HIGHslcpar)
+    HIGwid,HIGmean = pSLC.gSLC_bandwidth(HIGHslc,sample_lines=100,bigendian=True,threshold=10)
+    fh = freqs[0] #+ HIGmean
+    #
+    # speed of light
+    SPL = 299792458.
+    wl_H = SPL / fh * 100.
+    #
+    # original band
+    #
+    slcpar = glob.glob('RSLC*/%s*.rslc.par' % masterdate)[0]
+    info = pGAMMA.gamma_slcpar(slcpar)
+    f0   = float(info['radar_frequency'][0])  # center frequency
+    wl0  = pGAMMA.gamma_slcpar2wl(slcpar) * 100.    # wavelength
+    #
+    diff_par = glob.glob(dint_high+'/DINT*/*.diff_par')[0]
+    width,file_length = pGAMMA.gamma_diff_par(diff_par)
+    #
+    x0,y0 = int(width/2),int(file_length/2)
+    #
+    phs_low = pSAR.roipac.roi_read(unw_low, dims=[width,file_length],ingamma=True)
+    phs_hig = pSAR.roipac.roi_read(unw_high,dims=[width,file_length],ingamma=True)
+    #
+    ref1,ref2 = phs_low[x0,y0],phs_hig[x0,y0]
+    print(" ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    print(" + RAW    RSLC   PAR: %s" % os.path.abspath(slcpar))
+    print(" + LOW-band RSLC PAR: %s" % os.path.abspath(LOWslcpar))
+    print(" + HIG-band RSLC PAR: %s" % os.path.abspath(HIGHslcpar))
+    print(" + Wavelengths of original,low and high bands: %s %f %f" % (wl0,wl_L,wl_H))
+    print(" + Reference pixel @ %d %d with %f and %f" % (x0,y0,ref1,ref2))
+    print(" ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    #
+    phs_low[phs_low != 0] = phs_low[phs_low != 0] - ref1
+    phs_hig[phs_hig != 0] = phs_hig[phs_hig != 0] - ref2
+    #
+    phs_low_los = phs_low #* -1. / (4 * np.pi) * wl_L
+    phs_hig_los = phs_hig #* -1. / (4 * np.pi) * wl_H
+    #
+    # A bug fixed on 28/08/2017
+    # we should run the correction with light of sight in cm
+    #
+    ion     = (fl * fh) / (f0 * (fh**2 - fl**2)) * (fh * phs_low_los - fl * phs_hig_los)
+    ion_non = f0       / (fh**2 - fl**2) * (fh * phs_hig_los - fl * phs_low_los)
+    # ion     = ion      / wl0 * -4.0 * np.pi / 100.
+    # ion_non = ion_non  / wl0 * -4.0 * np.pi / 100.
+    #
+    phs_low_los,phs_hig_los,ion,ion_non = pION.ion_refine(fl,fh,f0,bw,phs_low_los,phs_hig_los,ion,ion_non)
+    phs_low_los,phs_hig_los,ion,ion_non = pION.ion_refine(fl,fh,f0,bw,phs_low_los,phs_hig_los,ion,ion_non)
+    #
+    return phs_low_los,phs_hig_los,ion,ion_non,width,file_length,f0,bw
+#
+def mk_newInfDIR(mslc,sslc,outdir,rlk,azlk):
+    #
+    mslc = os.path.abspath(mslc)
+    sslc = os.path.abspath(sslc)
+    #
+    mbname = os.path.basename(mslc).split('.rslc')[0]
+    masterdate = mbname[0:8]
+    rslcdir = outdir+'/RSLC_M%s' % masterdate
+    if not os.path.exists(rslcdir):
+       os.makedirs(rslcdir)
+    #
+    outmrslc = rslcdir+'/'+mbname+'.rslc'
+    outmpar  = rslcdir+'/'+mbname+'.rslc.par'
+    if not os.path.exists(outmrslc):
+       os.symlink(mslc,outmrslc)
+       os.symlink(mslc+'.par',outmpar)
+    #
+    #outmpar_ref  = rslcdir+'/'+mbname+'.rslc.par.ref'
+    #if not os.path.exists(outmpar_ref):
+    #   os.symlink(mslc+'.par.ref',outmpar_ref)
+    #
+    sbname = os.path.basename(sslc).split('.rslc')[0]
+    outsrslc = rslcdir+'/'+sbname+'.rslc'
+    outspar  = rslcdir+'/'+sbname+'.rslc.par'
+    if not os.path.exists(outsrslc):
+       os.symlink(sslc,outsrslc)
+       os.symlink(sslc+'.par',outspar)
+    #
+    #outspar_ref  = rslcdir+'/'+sbname+'.rslc.par.ref'
+    #if not os.path.exists(outspar_ref):
+    #   os.symlink(sslc+'.par.ref',outspar_ref)
+    #
+    dem_rdc = glob.glob('GEO*RLK%d_AZLK%d/*dem.rdc' % (rlk,azlk))
+    if len(dem_rdc) > 0:
+       dem_rdc = dem_rdc[0]
+       m_bname = os.path.basename(outmrslc)
+       s_bname = os.path.basename(outsrslc)
+       dint_dir = outdir+'/DINT_M%s_RLK%d_AZLK%d' % (masterdate,rlk,azlk)
+       rmli = glob.glob('RMLI_M*_RLK%d_AZLK%d/%s*.rmli' % (rlk,azlk,mbname))[0]
+       #
+       outint = dint_dir+'/'+m_bname.split('.')[0]+'_'+s_bname.split('.')[0]+'.int'
+       #
+       if not os.path.exists(dint_dir):
+          os.makedirs(dint_dir)
+       pGAMMA.gamma_SLC_intf(outmrslc,outsrslc,rlk,azlk,outint,offpar=None)
+       #rslc2geo = 'ginsar_rslc2geo.sh %s %s %s %s %s %d %d 5 64 0.85 0.05 %s 0 0.25 0.1 0 0' % \
+       #               (m_bname,s_bname,rslcdir,dem_rdc,dint_dir,rlk,azlk,rmli)
+       rslc2geo = 'ginsar_rslc2geo.sh %s %s %s %s %s %d %d 5 64 0.85 0.05 %s ' % \
+                      (m_bname,s_bname,rslcdir,dem_rdc,dint_dir,rlk,azlk,rmli)
+    else:
+       rslc2geo = None 
+    return rslc2geo
+#
+def bandcentr(nband):
+    #
+    bws = np.linspace(-0.5,0.5,num=(nband+1))
+    return bws
+#
+def rngsplit(inslc,outslc,fc,bw,amp,fc0=None,bw0=None):
+    #
+    if fc0 is not None:
+       rngsplit = 'pSAR_splitSLCRNG.py %s %s %f %f -amp %f -fc %f -bw %f' % (inslc,outslc,fc,bw,amp,fc0,bw0)
+    else:
+       rngsplit = 'pSAR_splitSLCRNG.py %s %s %f %f -amp %f' % (inslc,outslc,fc,bw,amp)
+    #
+    print(' ginsar_IONest: %s' % rngsplit)
+    os.system(rngsplit)
+    return True
+#
+def bandsplit_win(nband):
+    bws = bandcentr(nband)
+    frac = 1. / nband
+    # lower bound
+    fa1 = (bws[0]+bws[1])/2. 
+    bw_low = frac
+    #
+    # upper bound
+    fa2 = (bws[nband-1]+bws[nband])/2.
+    bw_high = frac
+    return fa1,fa2,bw_low,bw_high
+    #
+def bandsplit_spec(slcpar1,slcpar2,nband,obw=None):
+    #
+    # info from master_par
+    parinfo             = pGAMMA.gamma_slcpar(slcpar1)
+    frequency_1         = float(parinfo['radar_frequency'][0])
+    chirp_bandwidth_1   = float(parinfo['chirp_bandwidth'][0])
+    adc_sampling_rate_1 = float(parinfo['adc_sampling_rate'][0])
+    r_bw_frac_1         =  chirp_bandwidth_1 / adc_sampling_rate_1
+    # info from slave_par
+    #
+    parinfo             = pGAMMA.gamma_slcpar(slcpar2)
+    frequency_2         = float(parinfo['radar_frequency'][0])
+    chirp_bandwidth_2   = float(parinfo['chirp_bandwidth'][0])
+    adc_sampling_rate_2 = float(parinfo['adc_sampling_rate'][0])
+    r_bw_frac_2 = chirp_bandwidth_2 / adc_sampling_rate_2
+    #
+    r_bw_frac = np.min([r_bw_frac_1,r_bw_frac_2])
+    # 
+    # lower bound
+    # 3 bands mode
+    frac = 1. / nband
+    bws = bandcentr(nband)
+    fa1 = (bws[0]+bws[1])/2. * r_bw_frac
+    # 
+    # upper bound
+    fa2 = (bws[nband-1]+bws[nband])/2 * r_bw_frac
+    # fa2 = (bws[3]+bws[4])/2 * r_bw_frac
+    #  
+    #
+    print(" r_bw_frac, frac, fa1, fa2: %f %f %f %f" % (r_bw_frac,frac,fa1,fa2))
+    bw_low  =  frac * r_bw_frac
+    bw_high =  frac * r_bw_frac
+    if obw is not None:
+       if obw < bw_high:
+          bw_low = obw
+          bw_high = obw
+          print(" Fix bandwidth of low and high @ %s " % obw)
+    #
+    return fa1,fa2,bw_low,bw_high
+#
+# logging
+#
+#
+pSAR.util.log(sys.argv)
+#
+#############################################################
+if len(sys.argv) < 3:
+   helpstr = \
+   '''
+   %s <master_slc> <slave_rslc> -bands [2 in default] -alpha [0.95] -amp 1.
+      -obw [None in default] -wfrac [0.55 in default] -rlk [2] -azlk [3] -plot -beta [1.0] -fir_len [128]
+   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   To implement a range band spliting filter to master and slave SLCs
+   
+   -bands      2 in default
+   -wfrac      minimum fraction of points required to be non-zero in the filter window
+               in default 0.2. To get more smooth results, a greater value should be used.
+               0.55 in default in this version.
+   -alpha      smoothing strength to be used in adf
+   -rlk        multilooking number in range
+   -azlk       multilooking number in azimuth
+   -plot       False in default
+   -beta       1.0
+   -fir_len    128
+   -obw        bandwidth for output subband, None in default
+    by Wanpeng Feng, @NRCan, 2017-08-23
+
+   '''
+   print(helpstr % sys.argv[0])
+   sys.exit(-1)
+
+   
+#
+# Normalized spectral difference parameter
+# 0.5 was strong suggested
+#
+amp         = 1.0
+obw         = None
+plot        = False
+bands       = 3 
+alpha       = 0.95
+wfrac       = 0.55
+master_rslc = sys.argv[1]
+slave_rslc  = sys.argv[2]
+rlk         = None 
+azlk        = None
+fir_len     = 128
+beta        = 1.0
+#
+#
+for i,key in enumerate(sys.argv):
+    if key == '-amp':
+       amp = float(sys.argv[i+1])
+    if key == '-plot':
+       plot = True
+    if key == '-beta':
+       beta = float(sys.argv[i+1])
+    if key == '-fir_len':
+       fir_len = int(sys.argv[i+1])
+    if key == '-rlk':
+       rlk = int(sys.argv[i+1])
+    if key == '-azlk':
+       azlk = int(sys.argv[i+1])
+    if key == '-alpha':
+       alpha = float(sys.argv[i+1])
+    if key == '-wfrac':
+       wfrac =  float(sys.argv[i+1])
+    if key == '-bands':
+       bands = int(sys.argv[i+1])
+    if key == '-obw':
+       obw = float(sys.argv[i+1])
+#
+#
+if __name__ == '__main__':
+   #
+   out_rslc_dir = 'SSI_INT_%sBANDS/RSLC/' % bands
+   out_root_dir = 'SSI_INT_%sBANDS/' % bands
+   #
+   if not os.path.exists(out_rslc_dir):
+      os.makedirs(out_rslc_dir)
+   #
+   if rlk is None:
+      dint_dir = glob.glob('DINT*/')[0].rstrip('/')
+      rlk = int(dint_dir.split('_')[2][3::])
+      azlk = int(dint_dir.split('_')[3][4::])
+   #   
+   masterd = os.path.basename(master_rslc).split('.rslc')[0][0:8]
+   slaved = os.path.basename(slave_rslc).split('.rslc')[0][0:8]
+   pair_name = masterd+'_'+slaved
+   #
+   master_par = master_rslc+'.par'
+   slave_par  = slave_rslc+'.par'
+   mroot = os.path.basename(master_rslc).split('.')[0]
+   sroot = os.path.basename(slave_rslc).split('.')[0]
+   #
+   out_base = mroot+'_'+sroot
+   #
+   # preparation for band pass
+   # fa1,fa2,bw1,bw2 = bandsplit_spec(master_par,slave_par,bands,obw=obw)
+   fa1,fa2,bw1,bw2 = bandsplit_win(bands)
+   #
+   print(" Filter frequencies of low and high bands: %f %f" % (fa1,fa2))
+   print(" Band widths of low and high bands: %f %f" % (bw1,bw2))
+   #
+   # filtering Master SLC with band pass
+   #
+   ionLOG = out_root_dir+'/ION.log'
+   fidLOG = open(ionLOG,'a')
+   #
+   master_low = out_rslc_dir+'/'+os.path.basename(master_rslc)+'.low'
+   master_hig = out_rslc_dir+'/'+os.path.basename(master_rslc)+'.high'
+   master_low_dm = out_rslc_dir+'/'+os.path.basename(master_rslc)+'.low.dm'
+   master_hig_dm = out_rslc_dir+'/'+os.path.basename(master_rslc)+'.high.dm'
+   #
+   # replacing below functions with a single python script
+   rngsplit(master_rslc,master_low_dm,fa1,bw1,amp) 
+   rngsplit(master_rslc,master_hig_dm,fa2,bw2,amp)
+   # 
+   # filtering Slave SLC with band pass
+   #
+   slave_low = out_rslc_dir+'/'+os.path.basename(slave_rslc)+'.low'
+   slave_hig = out_rslc_dir+'/'+os.path.basename(slave_rslc)+'.high'
+   slave_low_dm = out_rslc_dir+'/'+os.path.basename(slave_rslc)+'.low.dm'
+   slave_hig_dm = out_rslc_dir+'/'+os.path.basename(slave_rslc)+'.high.dm'
+   #
+   # the same as above
+   fc0,bw0 = pGAMMA.gamma_freqshift(master_rslc+'.par',master_low_dm+'.par')
+   rngsplit(slave_rslc,slave_low_dm,fa1,bw1,amp,fc0=fc0,bw0=bw0)
+   fc0,bw0 = pGAMMA.gamma_freqshift(master_rslc+'.par',master_hig_dm+'.par')
+   rngsplit(slave_rslc,slave_hig_dm,fa2,bw2,amp,fc0=fc0,bw0=bw0)
+   # 
+   # inf dir for low frequency pair
+   lowFCdir = out_root_dir+'/%s_LOW' % pair_name
+   #
+   rslc2geo = mk_newInfDIR(master_low_dm,slave_low_dm,lowFCdir,rlk,azlk)
+   #
+   print(" +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+   print(" + Generating the low-frequency interferogram")
+   print(" +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+   print(rslc2geo)
+   # sys.exit(-1)
+   if rslc2geo is None:
+      sys.exit(-1)
+   pGAMMA.gamma_run(rslc2geo,log=fidLOG)
+   #
+   higFCdir = out_root_dir+'/%s_HIGH' % pair_name
+   rslc2geo = mk_newInfDIR(master_hig_dm,slave_hig_dm,higFCdir,rlk,azlk)
+   print(" +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+   print(" + Generating the high-frequency interferogram")
+   print(" +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+   print(rslc2geo)
+   # os.system(rslc2geo)
+   pGAMMA.gamma_run(rslc2geo,log=fidLOG)
+   #
+   fidLOG.close()
+   # derive ION component
+   pl,ph,pION,pION_non,wid,flen,f0,bw = ion(lowFCdir,higFCdir)
+   #
+   pION,rampSIM = pSAR.ts.deramp(pION,npara=3,istheilsen=True,scale=2) 
+   #
+   cunw = glob.glob('DINT_M*_RLK%d_AZLK%d/%s*%s*.adf.unw' % (rlk,azlk,masterd,slaved))[0]
+   ccc  = cunw.replace('.unw','.cc')
+   #
+   phs = pSAR.roipac.roi_read(cunw,dims=[wid,flen],ingamma=True)
+   # 
+   phsres = phs - pION
+   phsres[phs == 0] = 0.
+   phsres[pION == 0 ] = 0.
+   #
+   runw = cunw+'_B%d.unwr' % bands
+   pSAR.roipac.roi_write(phsres,runw,dtype='>f4')
+   ion = cunw+'_B%d.ion' % bands
+   pSAR.roipac.roi_write(pION,ion,dtype='>f4')
+   # 
+   georunw = os.path.dirname(runw)+'/geo_'+os.path.basename(runw).split('.')[0]+'.unwr'
+   pSAR_geocoding = 'pSAR_geocoding %s %s' % (runw,georunw)
+   print(pSAR_geocoding)
+   os.system(pSAR_geocoding)
+   #
+   #
+   geoion = os.path.dirname(runw)+'/geo_'+os.path.basename(ion).split('.')[0]+'.ionB'
+   pSAR_geocoding = 'pSAR_geocoding %s %s' % (ion,geoion)
+   print(pSAR_geocoding)
+   os.system(pSAR_geocoding)
+   #
+   geoion_l = os.path.dirname(runw)+'/geo_'+os.path.basename(ion).split('.')[0]+'.ion'
+   swap = 'swap_bytes %s %s 4' % (geoion,geoion_l)
+   os.system(swap)
+   phs_rsc = glob.glob(os.path.dirname(runw)+'/geo_*.phs.rsc')[0]
+   shutil.copy(phs_rsc,geoion_l+'.rsc')
+   #
+   #
+   if plot:
+     # showing unwrapping errors
+     #pcl = pSAR.ui.datashow(errD,title='errD',scale=2,minv=np.min(errD),maxv=np.max(errD),wrap=False,r=2,l=1,no=1)
+     #pch = pSAR.ui.datashow(errM,title='errM',scale=2,minv=np.min(errM),maxv=np.max(errM),wrap=False,r=2,l=1,no=2)
+     #plt.show()
+     # 
+     pcl = pSAR.ui.datashow(pl,title='PHS(low)',scale=2,minv=-5,maxv=5,wrap=True,r=2,l=2,no=1)
+     pch = pSAR.ui.datashow(ph,title='PHS(hig)',scale=2,minv=-5,maxv=5,wrap=True,r=2,l=2,no=2)
+     pci = pSAR.ui.datashow(pION,title='PHS(ION)',scale=2,minv=-10,maxv=10,wrap=True,r=2,l=2,no=3)
+     # pci = pSAR.ui.datashow(pION,title='PHS(ION)',scale=2,minv=np.min(pION),maxv=np.max(pION),wrap=False,r=2,l=2,no=3)
+     pci_none = pSAR.ui.datashow(pION_non-pION,title='PHS(ION_NONE)',scale=4,minv=-2,maxv=2,wrap=True,r=2,l=2,no=4)
+     plt.show()
+     #
+     pcl = pSAR.ui.datashow(phs,title='DInSAR(rad)',scale=2,minv=-2,maxv=2,wrap=True,r=3,l=1,no=1)
+     pch = pSAR.ui.datashow(pION,title='ION(rad)',scale=2,minv=-2,maxv=2,wrap=True,r=3,l=1,no=2)
+     pci = pSAR.ui.datashow(phsres,title='Corrected(rad)',scale=2,minv=-2,maxv=2,wrap=True,r=3,l=1,no=3)
+     plt.show()
+   
+   sys.exit(0)
+   #
+
