@@ -117,19 +117,6 @@ ENV PATH=${PATH}:$gInSAR:$S1A_InSAR:$MY_SCR:$MY_BIN:$gmtsar2stamps:$COPDEM_HOME:
 
 ENV PYTHONPATH=${PYTHONPATH}:/home/software/GMTSAR_ITC/pSAR/PYTHONPATH
 
-# RUN pip install awscli
-
-ENV AWS_ACCESS_KEY_ID=xxxxxxxxxxxxxxxxxxx
-ENV AWS_SECRET_ACCESS_KEY=xxxxxxxxxxxxxxxxxxx
-ENV AWS_DEFAULT_REGION=us-east-1
-
-RUN mkdir -p /root/.aws && \
-    echo "[default]" > /root/.aws/credentials && \
-    echo "aws_access_key_id=${AWS_ACCESS_KEY_ID}" >> /root/.aws/credentials && \
-    echo "aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}" >> /root/.aws/credentials && \
-    echo "[default]" > /root/.aws/config && \
-    echo "region=us-east-1" >> /root/.aws/config
-
 
 RUN mkdir /home/process/
 
