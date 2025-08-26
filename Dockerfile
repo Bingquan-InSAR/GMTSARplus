@@ -132,11 +132,11 @@ RUN apt-get update && apt-get install -y \
 
 
 RUN echo "machine dataspace.copernicus.eu\n\
-  login xxxxxxxxxxxxxxxxxxx\n\
-  password xxxxxxxxxxxxxxxxxxx\n\
+  login libingquan13@163.com\n\
+  password LBQlbq8454710000?\n\
  machine urs.earthdata.nasa.gov\n\
-  login xxxxxxxxxxxxxxxxxxx\n\
-  password xxxxxxxxxxxxxxxxxxx" > ~/.netrc
+  login libingquan13\n\
+  password LBQlbq84547100" > ~/.netrc
 
 RUN chmod -R +x /home/software/GMTSAR_ITC/
 RUN chmod 600 ~/.netrc
