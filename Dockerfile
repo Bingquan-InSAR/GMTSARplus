@@ -67,7 +67,7 @@ RUN conda init bash \
     && conda install gdal==3.8.5\
     && conda install numpy==1.26.4\
     && conda install matplotlib==3.8.4\ 
-    && pip install netCDF4 shapely lxml pyproj scipy geojson PyQt5==5.15.9 pandas geopandas tqdm networkx concave_hull elevation scikit-learn kml2geojson awscli boto3
+    && pip install netCDF4 shapely lxml pyproj scipy geojson PyQt5==5.15.9 pandas geopandas tqdm networkx concave_hull elevation scikit-learn kml2geojson awscli boto3 burst2safe fiona
 
 
 
