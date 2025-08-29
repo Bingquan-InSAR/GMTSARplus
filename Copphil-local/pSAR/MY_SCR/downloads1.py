@@ -9,7 +9,7 @@ Output order for --extent is strictly:
 
 Example
 -------
-python getaoifromkml.py \
+python downloads1.py \
   --input input.kml \
   --rel-orbit 155 \
   --start-date 2025-04-01 \
