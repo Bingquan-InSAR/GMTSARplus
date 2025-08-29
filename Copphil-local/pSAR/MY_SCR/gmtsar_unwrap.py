@@ -1,16 +1,6 @@
 #!/usr/bin/env python 
-
-###############################################################################
-# Wrapped Phase Unwrapping Script (FLS/SNAPHU)
-# Created by Wanpeng Feng (FWP) @ SYSU on February 9, 2021
-# Updated and maintained by Bingquan Li and Ling Chang on August 19, 2025
 #
-# Purpose:
-#   Perform 2D phase unwrapping for InSAR data using SNAPHU or FLS methods,
-#   with automated configuration generation, correlation masking, and
-#   patch-based processing to support large-scale interferograms.
-###############################################################################
-
+#
 import os
 import subprocess
 import sys
@@ -513,12 +503,15 @@ if not os.path.exists(unwrap_grd):
   # print(info)
   # create landmask
   #
+  
   landmask_ra = 'landmask_ra.grd'
   if not os.path.exists(landmask_ra):
     result = subprocess.run(['gmt', 'grdinfo', 'phasefilt.grd', '-I-'], capture_output=True, text=True)
     output = result.stdout.strip()
     region_cut = output[2:20]
-    os.system('ln -s ../topo/trans.dat .')
+    os.system('ln -s ../../topo/trans.dat .')
+    os.system('ln -s ../../topo/dem.grd .')
+    
     subprocess.run(['landmask.csh', region_cut], check=True)
 
     if os.path.exists(landmask_ra):

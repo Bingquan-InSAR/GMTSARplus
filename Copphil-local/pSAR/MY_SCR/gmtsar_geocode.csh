@@ -73,9 +73,9 @@ if (-e xphase_mask.grd) then
   echo "Masked y phase map: yphase_mask.pdf"
 endif
 if (-e unwrap_mask.grd) then 
-  gmt grdimage unwrap_mask.grd -JX6.5i -Bxaf+lRange -Byaf+lAzimuth -BWSen -Cunwrap.cpt -X1.3i -Y3i -P -K > unwrap_mask.ps
-  gmt psscale -Runwrap_mask.grd -J -DJTC+w5i/0.2i+h+e -Cunwrap.cpt -Bxaf+l"Unwrapped phase" -By+lrad -O >> unwrap_mask.ps
-  gmt psconvert -Tf -P -Z unwrap_mask.ps
+  #gmt grdimage unwrap_mask.grd -JX6.5i -Bxaf+lRange -Byaf+lAzimuth -BWSen -Cunwrap.cpt -X1.3i -Y3i -P -K > unwrap_mask.ps
+  #gmt psscale -Runwrap_mask.grd -J -DJTC+w5i/0.2i+h+e -Cunwrap.cpt -Bxaf+l"Unwrapped phase" -By+lrad -O >> unwrap_mask.ps
+  #gmt psconvert -Tf -P -Z unwrap_mask.ps
   echo "Unwrapped masked phase map: unwrap_mask.pdf"
 endif
 if (-e phasefilt_mask.grd) then 
@@ -127,7 +127,10 @@ if (-e unwrap_mask.grd) then
   gmtsar_proj_ra2ll.csh trans.dat unwrap_mask.grd unwrap_mask_ll.grd $script 
   gmt grdedit -D//"radians"/1///"PWD:t unwrapped, masked phase"/"$remarked"               unwrap_mask_ll.grd
 endif
+
+
 if (-e unwrap.grd) then
+  gmt grdtrend unwrap.grd -N3r -Dunwrap_detrended.grd
   gmtsar_proj_ra2ll.csh trans.dat unwrap.grd unwrap_ll.grd  $script
   gmt grdedit -D//"radians"/1///"PWD:t unwrapped phase"/"$remarked"               unwrap_ll.grd
 endif
@@ -148,9 +151,9 @@ if (-e xphase_mask_ll.grd) then
   grd2kml.csh xphase_mask_ll xphase.cpt
   grd2kml.csh yphase_mask_ll yphase.cpt
 endif
-if (-e unwrap_mask_ll.grd) then
-  grd2kml.csh unwrap_mask_ll unwrap.cpt
-endif
+#if (-e unwrap_mask_ll.grd) then
+#  grd2kml.csh unwrap_mask_ll unwrap.cpt
+#endif
 if (-e phasefilt_mask_ll.grd) then
   grd2kml.csh phasefilt_mask_ll phase.cpt
 endif

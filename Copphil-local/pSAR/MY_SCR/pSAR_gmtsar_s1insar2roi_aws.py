@@ -1,14 +1,6 @@
 #!/usr/bin/env python
-###############################################################################
-# GMTSAR to ROI_PAC Batch Conversion Script
-# Created by Wanpeng Feng at SYSU on April 20, 2020
-# Updated by Bingquan Li and Ling Chang on August 19, 2025
 #
-# Purpose:
-#   Perform parallel conversion of GMTSAR processing results into 
-#   ROI_PAC-compatible format, including metadata integration, 
-#   incidence/azimuth update, and spatial coverage figures.
-###############################################################################
+#
 import pSAR
 import os
 import sys
@@ -146,8 +138,8 @@ if True:
         shutil.copyfile(cfigure, outdir+'/%s' % bname)
     #
     # pSAR_gmtsar_s1.log
-    if os.path.exists('pSAR_gmtsar_s1.log'):
-        roi = log2roi('pSAR_gmtsar_s1.log')
+    if os.path.exists('pSAR_gmtsar_s1_aws.log'):
+        roi = log2roi('pSAR_gmtsar_s1_aws.log')
         os.system('echo %s > %s/roi.info' % (roi,outdir))
 
     # 

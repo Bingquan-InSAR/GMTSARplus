@@ -1,14 +1,7 @@
 #!/usr/bin/env python
-###############################################################################
-# GMTSAR to ROI_PAC Conversion Script
-# Created by Wanpeng Feng at SYSU on April 19, 2020
-# Updated by Bingquan Li and Ling Chang on August 19, 2025
 #
-# Purpose:
-#   Convert GMTSAR SBAS processing results to ROI_PAC-compatible format,
-#   including metadata extraction, incidence angle estimation, and 
-#   auxiliary file generation for InSAR time series processing.
-############################################################################### 
+#
+# 
 import shutil
 import pGMT5SAR
 import pSAR

@@ -113,6 +113,7 @@ if True:
     pairname = os.path.basename(os.getcwd())
     #
     prms = glob.glob(prmFolder+'/intf_all/'+pairname+'/S*ALL*.PRM')
+    print(prms)
     prms.sort()
     #
     if len(prms)==0:
