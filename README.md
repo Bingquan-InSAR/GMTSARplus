@@ -31,7 +31,7 @@ This project uses **Nomad** to manage job execution and scheduling:
 
 ### Workflow Diagram
 
-![Workflow](https://github.com/Bingquan-InSAR/GMTSAR-X/blob/main/docs/figures/workflow.jpg?raw=true)
+![Workflow](https://github.com/Bingquan-InSAR/GMTSAR-X/blob/main/docs/figures/workflow.png?raw=true)
 
 ---
 
