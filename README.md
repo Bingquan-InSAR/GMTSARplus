@@ -37,6 +37,6 @@ This project uses **Nomad** to manage job execution and scheduling:
 
 
 
-## 4. Contact us
+## 3. Contact us
 
 * Most development discussion happens on GitHub. Feel free to [open an issue](https://github.com/Bingquan-InSAR/GMTSAR-X/issues) or comment on any open issue or pull request.
