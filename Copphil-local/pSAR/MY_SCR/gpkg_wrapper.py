@@ -1,276 +1,256 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 ###############################################################################
-# Ground Motion Product Export and Upload Script
-# Created by George on July 19, 2025
-# Updated by Bingquan Li and Ling Chang on August 19, 2025
-#
-# Purpose:
-#   Generate standardized GPKG/GeoJSON products and XML metadata from Sentinel-1
-#   deformation CSV results, reproject to target CRS, and upload to S3 cloud storage.
+# Ground Motion Product Export Script (simplified)
+# Original: 2025-07-19 (George) | Updated: 2025-08-19 (Bingquan Li & Ling Chang)
+# This version: 2025-08-31 (me) — per user request:
+#   - Do NOT use COP_MASTER_GRID_ASCENDING/DESCENDING.geojson
+#   - Do NOT use /tmp
+#   - Outputs must be output.gpkg and output.xml in the current directory
 ###############################################################################
+
 import os
-import boto3
 import argparse
 import pandas as pd
 import geopandas as gpd
 from pathlib import Path
-from tqdm import tqdm
 import xml.etree.ElementTree as ET
 import xml.dom.minidom as minidom
 from datetime import datetime
-
+from tqdm import tqdm
 import secrets
 import string
 
 
 def extract_first_last_dates(s1_products):
     """
-    Extract the first and last acquisition dates from a list of Sentinel-1 SLC product names.
-    
-    Parameters:
-    s1_products (list): List of Sentinel-1 SLC product names
-    
+    Extract first and last acquisition dates from a list of S1 product names.
+
+    Expected name parts like: S1A_IW_SLC__1SDV_20240101T012345_...
+    We take the 6th token (index 5) then first 8 chars as YYYYMMDD.
+
     Returns:
-    tuple: (first_date, last_date) in 'dd/mm/yyyy' format
+        (firstDate, firstYear, lastDate, lastYear) with dd/mm/YYYY strings, and years as int.
+        On failure or empty list, all returned as None.
     """
     try:
-        # Extract acquisition start dates from file names
         dates = []
         for product in s1_products:
-            date_str = product.split('_')[5][:8]  
-            date = datetime.strptime(date_str, '%Y%m%d')
-            dates.append(date)
-        
-        # Sort dates to find first and last
+            parts = product.split('_')
+            if len(parts) >= 6:
+                date_str = parts[5][:8]
+                date = datetime.strptime(date_str, '%Y%m%d')
+                dates.append(date)
         if not dates:
-            return None, None
-        
+            return None, None, None, None
         dates.sort()
         firstDate = dates[0].strftime('%d/%m/%Y')
         lastDate = dates[-1].strftime('%d/%m/%Y')
-
         firstYear = dates[0].year
         lastYear = dates[-1].year
-        
         return firstDate, firstYear, lastDate, lastYear
-    
-    except Exception as e:
-        print(f"Error processing dates: {e}")
-        return None, None
+    except Exception:
+        return None, None, None, None
 
 
-def create_metadata_xml(sbas_result, meta, projection):
-
-    # Read meta
-    df_meta = pd.read_csv(meta, delimiter=":")
-
-    # Get S1 scenes from dataframe and create list
-    s1_scenes = df_meta[df_meta['VARIABLE']=='LIST_S1']['VALUE'].iloc[0]
-    replacements = str.maketrans({"[": "", "]" : "", "'":""})
-    s1_scenes_good = s1_scenes.translate(replacements).split(',')
-    
-    # Get first-last date
-    firstDate, firstYear, lastDate, lastYear = extract_first_last_dates (s1_scenes_good)
-    
-    # Get number of inputs
-    NI = len(s1_scenes_good)
-    
-    
-    # Get Relative orbit information
-    orbit =[]
-    for scene in s1_scenes_good: 
-        satellite = scene.split('_')[0]
-        orbit_str = scene.split('_')[-3]
-        
-        
-        if satellite == 'S1A':
-            orbitA = ((int(orbit_str) - 73) %175)+1
-            orbit.append(orbitA)
-        
-        if satellite == 'S1B':
-            orbitB = ((int(orbit_str) - 27) %175)+1
-            orbit.append(orbitB)
-    
-    s1_orbit = set(orbit)
-
-    s1_orbitXML = None if len(s1_orbit) == 0 else s1_orbit.pop()
-    
-    # Get Orbit and Incidence Angle
-    Orbit_Angle = sbas_result["Heading"].iloc[0]
-    Incidence_Angle = sbas_result["Incidence"].iloc[0]
+def safe_get(df_meta, key, default="NA"):
+    """Get meta value by VARIABLE==key from a df with columns ['VARIABLE','VALUE']."""
+    try:
+        val = df_meta[df_meta['VARIABLE'] == key]['VALUE'].iloc[0]
+        return str(val).strip()
+    except Exception:
+        return default
 
 
-    #Generate uniqueID with 8 alphanumeirc data
-    length = 8
-    DeliverableID = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(length))
+def normalize_list_s1(list_text):
+    """
+    Normalize LIST_S1 string like: "['A.SAFE','B.SAFE']" -> ['A.SAFE','B.SAFE']
+    """
+    s = str(list_text)
+    reps = str.maketrans({"[": "", "]": "", "'": ""})
+    cleaned = s.translate(reps)
+    # split by comma, strip whitespace, drop empties
+    items = [x.strip() for x in cleaned.split(',') if x.strip()]
+    return items
 
-    # Info from meta txt file
-    Pass = str(df_meta[df_meta['VARIABLE']=='PASS']['VALUE'].iloc[0])
-    APS = str(df_meta[df_meta['VARIABLE']=='APSCorrection']['VALUE'].iloc[0])
-    DEM = str(df_meta[df_meta['VARIABLE']=='DEM']['VALUE'].iloc[0])
-    
-    # Create the root
-    root = ET.Element("ProductMetadata")
-    # Add elements
-    ET.SubElement(root, "ProductLevel").text = "P1.1 LOS"
-    # Parse elements from the dataframe or statict to the XML
-    ET.SubElement(root, "Pass").text = Pass
-    ET.SubElement(root, "DeliverableID").text = str(DeliverableID)
-    ET.SubElement(root, "ProcessorVersion").text = "1.0.0v"
-    ET.SubElement(root, "ProcessingDate").text = str(datetime.now())
-    ET.SubElement(root, "APSCorrection").text = APS
-    #ET.SubElement(root, "ReferencePoint").text = str(df_meta[df_meta['VARIABLE']=='REFERENCE_POINT']['VALUE'].iloc[0])
-    ET.SubElement(root, "EPSG").text = str (projection)
-    ET.SubElement(root, "DEM").text = DEM
-    ET.SubElement(root, "Constellation").text = "Sentinel-1"
-    ET.SubElement(root, "RelativeOrbitSentinel-1").text = str(s1_orbitXML)
-    
-    # Incidence Angle and Orbit Angle
-    los_vector = ET.SubElement(root, "LOSVector")
-    product = ET.SubElement(los_vector, "IncidenceAngle")
-    product.text = str(Incidence_Angle)
-    product = ET.SubElement(los_vector, "OrbitAngle")
-    product.text = str(Orbit_Angle)
 
-    # First and last acquisition dates
-    ET.SubElement(root, "NI").text = str(NI)
-    ET.SubElement(root, "FirstAcquisition").text = str(firstDate)
-    ET.SubElement(root, "LastAcquisition").text = str(lastDate)
-    
-    # Parse S1 list
-    products = ET.SubElement(root, "Sentinel1InputProducts")
-    
-    # Add products to XML
-    if s1_scenes_good:
-        for product in s1_scenes_good:
-            if product.endswith('.SAFE'):
-                product_split = product.split('.SAFE')[0]
-                prod_elem = ET.SubElement(products, "Product")
-                prod_elem.text = product_split
-            
-            else:
-                prod_elem = ET.SubElement(products, "Product")
-                prod_elem.text = product
-    
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    if Pass == 'DESCENDING':
-        master_grid_path = os.path.join(script_dir, 'COP_MASTER_GRID_DESCENDING.geojson')
-        master_grid = gpd.read_file(master_grid_path)
-        joined_grid = sbas_result.sjoin(master_grid)
+def relative_orbit_from_name(scene_name):
+    """
+    Compute Sentinel-1 relative orbit from product name.
+    For S1A: ((abs_orbit - 73) % 175) + 1
+    For S1B: ((abs_orbit - 27) % 175) + 1
+    Returns int or None.
+    """
+    try:
+        parts = scene_name.split('_')
+        if len(parts) < 3:
+            return None
+        sat = parts[0]  # e.g., 'S1A' or 'S1B'
+        # absolute orbit often is third from the end; original code used [-3]
+        abs_orbit_str = parts[-3]
+        abs_orbit = int(abs_orbit_str)
+        if sat == 'S1A':
+            return ((abs_orbit - 73) % 175) + 1
+        elif sat == 'S1B':
+            return ((abs_orbit - 27) % 175) + 1
+        else:
+            return None
+    except Exception:
+        return None
 
-    
-    elif Pass == 'ASCENDING': 
-        master_grid_path = os.path.join(script_dir, 'COP_MASTER_GRID_ASCENDING.geojson')
-        master_grid = gpd.read_file(master_grid_path)
-        joined_grid = sbas_result.sjoin(master_grid)
-    
+
+def create_metadata_xml(gdf, meta_path, projection, xml_filename="output.xml"):
+    """
+    Create output.xml in current directory using:
+      - LIST_S1 / PASS / APSCorrection / DEM from meta (if exists)
+      - NI, First/Last acquisition from LIST_S1
+      - RelativeOrbit from LIST_S1
+      - Incidence/Heading from gdf columns if present
+    """
+    # meta
+    has_meta = meta_path is not None and Path(meta_path).is_file()
+    if has_meta:
+        # Expect "VARIABLE:VALUE" per line
+        df_meta = pd.read_csv(meta_path, delimiter=":", names=["VARIABLE", "VALUE"], engine="python")
+        # Strip whitespace from columns
+        df_meta["VARIABLE"] = df_meta["VARIABLE"].astype(str).str.strip()
+        df_meta["VALUE"] = df_meta["VALUE"].astype(str).str.strip()
+        list_s1_text = safe_get(df_meta, "LIST_S1", default="")
+        s1_list = normalize_list_s1(list_s1_text)
+        Pass = safe_get(df_meta, "PASS", default="NA")
+        APS = safe_get(df_meta, "APSCorrection", default="NA")
+        DEM = safe_get(df_meta, "DEM", default="NA")
     else:
-        raise ValueError("Not a valid orbit pass. Meta file may be not incorrect!")
-    
-    Path = joined_grid["Path"].value_counts().idxmax()
-    Frame = joined_grid["Frame"].value_counts().idxmax()
+        s1_list = []
+        Pass = "NA"
+        APS = "NA"
+        DEM = "NA"
 
-    export_name = f'CPH_GMS_P1.1_{s1_orbitXML}_P{Path}_F{Frame}_{Pass}_{firstYear}_{lastYear}_{DeliverableID}'
-    
-    # Convert to pretty-printed XML string
-    rough_string = ET.tostring(root, 'utf-8')
+    # dates & NI
+    firstDate, firstYear, lastDate, lastYear = extract_first_last_dates(s1_list)
+    NI = len(s1_list)
+
+    # relative orbit: take first valid
+    rel_orbits = []
+    for scene in s1_list:
+        ro = relative_orbit_from_name(scene)
+        if ro is not None:
+            rel_orbits.append(ro)
+    rel_orbit = rel_orbits[0] if rel_orbits else None
+
+    # Incidence/Heading from gdf
+    def col_or_na(col):
+        try:
+            return str(gdf[col].iloc[0])
+        except Exception:
+            return "NA"
+
+    Incidence_Angle = col_or_na("Incidence")
+    Orbit_Angle = col_or_na("Heading")
+
+    # unique deliverable id
+    DeliverableID = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(8))
+
+    # Build XML
+    root = ET.Element("ProductMetadata")
+    ET.SubElement(root, "ProductLevel").text = "P1.1 LOS"
+    ET.SubElement(root, "Pass").text = str(Pass)
+    ET.SubElement(root, "DeliverableID").text = str(DeliverableID)
+    ET.SubElement(root, "ProcessorVersion").text = "1.0.0"
+    ET.SubElement(root, "ProcessingDate").text = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    ET.SubElement(root, "APSCorrection").text = str(APS)
+    ET.SubElement(root, "EPSG").text = str(projection)
+    ET.SubElement(root, "DEM").text = str(DEM)
+    ET.SubElement(root, "Constellation").text = "Sentinel-1"
+    ET.SubElement(root, "RelativeOrbitSentinel-1").text = "" if rel_orbit is None else str(rel_orbit)
+
+    los_vector = ET.SubElement(root, "LOSVector")
+    ET.SubElement(los_vector, "IncidenceAngle").text = str(Incidence_Angle)
+    ET.SubElement(los_vector, "OrbitAngle").text = str(Orbit_Angle)
+
+    ET.SubElement(root, "NI").text = str(NI if NI else 0)
+    ET.SubElement(root, "FirstAcquisition").text = "" if firstDate is None else str(firstDate)
+    ET.SubElement(root, "LastAcquisition").text = "" if lastDate is None else str(lastDate)
+
+    products = ET.SubElement(root, "Sentinel1InputProducts")
+    for product in s1_list:
+        elem = ET.SubElement(products, "Product")
+        elem.text = product.split('.SAFE')[0] if product.endswith('.SAFE') else product
+
+    # Pretty print XML
+    rough_string = ET.tostring(root, encoding="utf-8")
     reparsed = minidom.parseString(rough_string)
-    pretty_xml = reparsed.toprettyxml(indent="  ")
-    
-    # Save to file
-    with open(f"/tmp/{export_name}.xml", "w", encoding="utf-8") as f:
-        f.write(pretty_xml)
+    with open(xml_filename, "w", encoding="utf-8") as f:
+        f.write(reparsed.toprettyxml(indent="  "))
 
-    return export_name
 
-def read_export(input_path, extension, projection):
+def read_export(input_path, projection):
     """
-    Reads CSV files, converts to GeoDataFrames, reprojects, and uploads to S3.
-    Upload path: s3://results/results/GroundMotion/<user_id>/<order_id>/<filename>
+    Read all CSV under input_path, concatenate to one GeoDataFrame,
+    reproject to `projection`, and write to output.gpkg in current dir.
+    Also write output.xml using first found .txt meta (if any).
     """
-    user_id = os.getenv('USER_ID')
-    order_id = os.getenv('ORDER_ID')
-    bucket_name = "results"
-    s3_endpoint = "https://s3.waw3-1.cloudferro.com"
+    input_path = Path(input_path)
+    if not input_path.is_dir():
+        raise NotADirectoryError(f"Input path is not a directory: {input_path}")
 
-    if not user_id or not order_id:
-        raise EnvironmentError("Environment variables USER_ID and ORDER_ID must be defined.")
-    
-    #boto3 connection
-    s3 = boto3.client('s3', endpoint_url=s3_endpoint)
+    csv_files = sorted([p for p in input_path.iterdir() if p.suffix.lower() == ".csv"])
+    meta_files = sorted([p for p in input_path.iterdir() if p.suffix.lower() == ".txt"])
 
-    csv_files = [os.path.join(input_path, f) for f in os.listdir(input_path) if f.endswith('.csv')]
-    meta_files = [os.path.join(input_path, f) for f in os.listdir(input_path) if f.endswith('.txt')]
-
-    csv_files.sort()
-    meta_files.sort()
-
-    
     if not csv_files:
-        print("No CSV files found.")
+        print("No CSV files found under input_path.")
         return
 
-    for file_path, meta_file_path in tqdm(zip(csv_files, meta_files), desc="Processing and uploading"):
-        
+    frames = []
+    for fp in tqdm(csv_files, desc="Reading CSV"):
         try:
-            df = pd.read_csv(file_path)
-
+            df = pd.read_csv(fp)
             if 'LAT' not in df.columns or 'LON' not in df.columns:
-                print(f"Skipping {file_path}: Missing 'LAT' or 'LON' columns.")
+                print(f"Skipping {fp.name}: missing LAT/LON.")
                 continue
-            
-            # read points as GDF
-            gdf = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df.LON, df.LAT), crs='EPSG:4326')
-            gdf = gdf.to_crs(projection)
-
-            # get the export name from the create_meta_xml function
-            gpkg_export_name = create_metadata_xml(sbas_result = gdf, meta=meta_file_path,  projection=projection)
-            
-            #base_name = Path(file_path).stem
-            #filename = f"{base_name}{extension}"
-            local_tmp = f"/tmp/{gpkg_export_name}{extension}"
-            s3_key = f"GroundMotion/{user_id}/{order_id}/{gpkg_export_name}{extension}"
-
-            s3_key_xml = f"GroundMotion/{user_id}/{order_id}/{gpkg_export_name}.xml"
-            if extension == ".gpkg":
-                gdf.to_file(local_tmp, driver="GPKG", index=False)
-            
-            elif extension == ".geojson":
-                gdf.to_file(local_tmp, driver="GeoJSON", index=False)
-            
-            else:
-                raise ValueError("Unsupported extension. Use .gpkg or .geojson")
-
-            s3.upload_file(local_tmp, bucket_name, s3_key)
-            s3.upload_file(f"/tmp/{gpkg_export_name}.xml", bucket_name, s3_key_xml)
-
-            print(f"Uploaded: s3://{bucket_name}/{s3_key}")
-            print(f"Uploaded XML: s3://{bucket_name}/{s3_key_xml}")
-
-            # delete all files from /tmp, for multiple extension files
-            local_tmp = "/tmp"
-            for filename in os.listdir(local_tmp):
-                final_export = os.path.join(local_tmp, filename)
-                
-                # check if file is dir
-                if os.path.isfile(final_export):
-                    if final_export.endswith((".gpkg", ".geojson", ".xml")):
-                        os.remove(final_export) 
-                        print(f"Deleted file: {filename}")
-        
+            frames.append(df)
         except Exception as e:
-            print(f"Error processing {file_path}: {e}")
+            print(f"Error reading {fp.name}: {e}")
+
+    if not frames:
+        print("No valid CSVs with LAT/LON found.")
+        return
+
+    df_all = pd.concat(frames, ignore_index=True)
+    gdf = gpd.GeoDataFrame(df_all, geometry=gpd.points_from_xy(df_all['LON'], df_all['LAT']), crs="EPSG:4326")
+    try:
+        gdf = gdf.to_crs(projection)
+    except Exception as e:
+        print(f"Failed to reproject to {projection}: {e}")
+        print("Falling back to EPSG:4326.")
+        gdf = gdf.to_crs("EPSG:4326")
+
+    # Write GPKG
+    out_gpkg = "output.gpkg"
+    gdf.to_file(out_gpkg, driver="GPKG", index=False)
+    print(f"Wrote {out_gpkg} in {Path.cwd()}")
+
+    # XML (use first meta if exists)
+    meta_path = meta_files[0] if meta_files else None
+    create_metadata_xml(gdf, meta_path, projection, xml_filename="output.xml")
+    print(f"Wrote output.xml in {Path.cwd()}")
+
 
 def main():
-    parser = argparse.ArgumentParser(description="Convert CSV to GPKG/GeoJSON and upload to S3 GroundMotion folder.")
-
-    parser.add_argument('--input_path', '-i', type=str, required=True, help='Path to directory containing .csv files')
-    parser.add_argument('--extension', '-e', type=str, default='.gpkg', choices=['.gpkg', '.geojson'], help='Export format')
-    parser.add_argument('--projection', '-p', type=str, default='EPSG:4326', help='Output projection (default EPSG:4326)')
-
+    parser = argparse.ArgumentParser(
+        description="Merge CSVs to GPKG and write XML metadata (output.gpkg / output.xml in current dir)."
+    )
+    parser.add_argument(
+        "--input_path", "-i", type=str, required=True,
+        help="Directory containing .csv (and optional .txt meta)."
+    )
+    parser.add_argument(
+        "--projection", "-p", type=str, default="EPSG:4326",
+        help="Output projection (default: EPSG:4326)."
+    )
     args = parser.parse_args()
+    read_export(args.input_path, args.projection)
 
-    read_export(args.input_path, args.extension, args.projection)
 
 if __name__ == "__main__":
     main()
