@@ -1,42 +1,33 @@
+# InSAR Time Series Tool with GMTSAR and StaMPS
 
-
-
-
-# InSAR Time Series Tool with GMTSAR and StaMPS  
-
-This repository provides an InSAR time series processing workflow based on GMTSAR and StaMPS, specifically designed for the **local workstation**.  
-
+This repository provides an **InSAR time series processing workflow** based on **GMTSAR** and **StaMPS**, optimized for use on a **local workstation**.
 
 ---
 
-## 🚀 Deployment Instructions  
+## 🚀 1. Configure Data Access Accounts
 
-If you would like to deploy a similar setup for your own project, please note the following:  
+Before running the workflow, ensure the following accounts are configured with valid credentials in your `.netrc` file:
 
-
-### 1. Configure Data Access Accounts
-
-Make sure to configure the following services with valid credentials:
-
-* `machine urs.earthdata.nasa.gov` (NASA Earthdata)
-* `machine dataspace.copernicus.eu` (Copernicus Dataspace)
+- `machine urs.earthdata.nasa.gov` – NASA Earthdata
+- `machine dataspace.copernicus.eu` – Copernicus Dataspace
 
 ---
 
-### 2. ⚙️ Workflow Overview
-
-This project uses **Nomad** to manage job execution and scheduling:
-
-➡️ User job submission → Nomad scheduling → Docker execution → Result upload
+## ⚙️ 2. Workflow Overview
 
 ### Workflow Diagram
-
 ![Workflow](https://github.com/Bingquan-InSAR/GMTSAR-X/blob/main/docs/figures/workflow.png?raw=true)
 
 ---
 
+## 📬 3. Contact
 
+Most development discussions take place on GitHub.  
+Feel free to [open an issue](https://github.com/Bingquan-InSAR/GMTSAR-X/issues) or comment on any open issue or pull request.
 
-## 3. Contact us
+---
 
-* Most development discussion happens on GitHub. Feel free to [open an issue](https://github.com/Bingquan-InSAR/GMTSAR-X/issues) or comment on any open issue or pull request.
+## 📚 4. References
+
+- [GMTSAR GitHub Repository](https://github.com/gmtsar/gmtsar)  
+- [INSAR_G2S GitHub Repository](https://github.com/dedetmix/INSAR_G2S)
