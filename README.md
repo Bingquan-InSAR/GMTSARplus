@@ -19,7 +19,7 @@ Before running the workflow, ensure the following accounts are configured with v
 ![Workflow](https://github.com/Bingquan-InSAR/GMTSAR-X/blob/main/docs/figures/workflow.png?raw=true)
 
 ---
-## 📬 3. Example
+## 🛰️ 3. Example
 
 ![Example](https://github.com/Bingquan-InSAR/GMTSAR-X/blob/main/docs/figures/Philippines.jpg?raw=true)
 
