@@ -1,14 +1,5 @@
 #!/usr/bin/env python 
-###############################################################################
-# Sentinel-1 CSV 2D Decomposition Script
-# Created by Bingquan Li and Ling Chang on August 19, 2025
-# Purpose:
-#   1. Load ascending and descending Sentinel-1 time-series CSV files
-#   2. Generate .grd rasters for height, incidence, heading, displacement, etc.
-#   3. Perform 2D decomposition to extract vertical and horizontal deformation
-#   4. Estimate velocity and standard deviation (STD) maps
-#   5. Export time-series results to CSV for further visualization and analysis
-###############################################################################
+
 import pandas as pd
 from datetime import datetime
 import re
@@ -81,7 +72,7 @@ else:
     base_dates, search_dates = dates2, dates1
     base_csv, search_csv = args.csv_ds, args.csv_as
 
-for var in ['HEIGHT', 'LON', 'LAT']:
+for var in ['HEIGHT', 'LON', 'LAT', 'COHER']:
     os.system(make_xyz2grd_cmd(base_csv, var, f"{var.lower()}.grd"))
 
 nearest_mapping = {
@@ -156,13 +147,13 @@ def compute_velocity_and_std(grd_list, output_vel, output_std, ref_profile):
     save_grd(std_map, ref_profile, output_std)
 
 # Export to CSV
-def export_deformation_csv(grd_files, velocity_grd, std_grd, lat_grd, lon_grd, hgt_grd, output_csv):
+def export_deformation_csv(grd_files, velocity_grd, std_grd, lat_grd, lon_grd, hgt_grd, coh_grd, output_csv):
     vel_data, _ = read_grd(velocity_grd)
     std_data, _ = read_grd(std_grd)
     lat_data, _ = read_grd(lat_grd)
     lon_data, _ = read_grd(lon_grd)
     hgt_data, _ = read_grd(hgt_grd)
-
+    coh_data, _ = read_grd(coh_grd)
     ts_data = []
     date_labels = []
     for f in sorted(grd_files):
@@ -183,6 +174,7 @@ def export_deformation_csv(grd_files, velocity_grd, std_grd, lat_grd, lon_grd, h
                 np.isnan(lat_data[i, j]) or
                 np.isnan(lon_data[i, j]) or
                 np.isnan(hgt_data[i, j]) or
+                np.isnan(coh_data[i, j]) or
                 np.isnan(vel_data[i, j]) or
                 np.isnan(std_data[i, j]) or
                 np.all(np.isnan(ts_stack[i, j, :]))
@@ -197,6 +189,7 @@ def export_deformation_csv(grd_files, velocity_grd, std_grd, lat_grd, lon_grd, h
                 "LAT": lat_data[i, j],
                 "LON": lon_data[i, j],
                 "HEIGHT": hgt_data[i, j],
+                "COHER": coh_data[i, j],
                 "VEL": vel_data[i, j],
                 "VSDEV": std_data[i, j],
             }
@@ -217,6 +210,7 @@ export_deformation_csv(
     lat_grd="lat.grd",
     lon_grd="lon.grd",
     hgt_grd="height.grd",
+    coh_grd="coher.grd",
     output_csv="Horizontal_timeseries.csv"
 )
 
@@ -227,5 +221,6 @@ export_deformation_csv(
     lat_grd="lat.grd",
     lon_grd="lon.grd",
     hgt_grd="height.grd",
+    coh_grd="coher.grd",
     output_csv="Vertical_timeseries.csv"
 )
