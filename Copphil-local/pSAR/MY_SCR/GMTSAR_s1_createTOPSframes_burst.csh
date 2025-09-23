@@ -60,8 +60,8 @@ mkdir new.SAFE/annotation new.SAFE/measurement
 
 # ---- read iws.in and decide which subswaths to process ----
 # iws.in can be "0,1,0" or "0 1 0"; default to 1 1 1 if missing
-if (-e /mnt/Test/iws.in) then
-    set iws = (`sed 's/,/ /g' /mnt/Test/iws.in`)
+if (-e ../../iws.in) then
+    set iws = (`sed 's/,/ /g' ../../iws.in`)
 else
     set iws = (1 1 1)
 endif
