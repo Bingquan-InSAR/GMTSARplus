@@ -22,8 +22,8 @@ Before running the workflow, ensure the following accounts are configured with v
 ## 🛰️ 3. Example
 
 
-  <img src="https://github.com/Bingquan-InSAR/GMTSAR-X/blob/main/docs/figures/Philippines.jpg?raw=true" width="800" />
-  <img src="https://github.com/Bingquan-InSAR/GMTSAR-X/blob/main/docs/figures/deformation_1.jpg?raw=true" width="800" />
+  <img src="https://github.com/Bingquan-InSAR/GMTSAR-X/blob/main/docs/figures/Fig1.jpg?raw=true" width="800" />
+  <img src="https://github.com/Bingquan-InSAR/GMTSAR-X/blob/main/docs/figures/Fig4.jpg?raw=true" width="800" />
 
 
 
