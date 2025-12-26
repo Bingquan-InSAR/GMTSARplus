@@ -16,7 +16,7 @@ Before running the workflow, ensure the following accounts are configured with v
 ## ⚙️ 2. Workflow Overview
 
 ### Workflow Diagram
-![Workflow](https://github.com/Bingquan-InSAR/GMTSAR-X/blob/main/docs/figures/workflow.png?raw=true)
+![Workflow](https://github.com/Bingquan-InSAR/GMTSAR-X/blob/main/docs/figures/workflow.jpg?raw=true)
 
 ---
 ## 🛰️ 3. Example
