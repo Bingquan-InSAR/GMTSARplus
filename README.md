@@ -1,6 +1,6 @@
 # InSAR Time Series Tool with GMTSAR and StaMPS
 
-This repository provides an **InSAR time series processing workflow** based on **GMTSAR** and **StaMPS**, optimized for use on a **local workstation**.
+This repository provides an **InSAR time series processing workflow** based on **GMTSAR**, optimized for use on a **local workstation**.
 
 ---
 
