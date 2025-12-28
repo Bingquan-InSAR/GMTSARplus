@@ -49,34 +49,6 @@ Run a full SBAS workflow (download → SBAS processing → export) in one comman
 
 ---
 
-## required arguments
-
-### `--kml <path>`
-AOI vector file used to compute the ROI bounding box (EPSG:4326).
-
-- Supported formats include: `KML`, `GeoJSON`, `GPKG`, etc.
-- For KML with multiple layers, all layers are read and merged.
-
-### `--st <YYYYMMDD>`
-Start date (inclusive), format: `YYYYMMDD` (e.g., `20240101`).
-
-### `--ed <YYYYMMDD>`
-End date (inclusive), format: `YYYYMMDD` (e.g., `20240131`).
-
-### `--rel_orbit <int>`
-Sentinel-1 relative orbit number (integer).
-
-### `--tmpbase <days>`
-Temporal baseline threshold (days) used to form interferogram pairs in SBAS.
-
-### `--rlook <int>`
-Range multilook factor (integer).
-
-### `--azlook <int>`
-Azimuth multilook factor (integer).
-
----
-
 ## outputs
 
 Generated under `workdir`:
