@@ -4,23 +4,28 @@ This repository provides an **InSAR time series processing workflow** based on *
 
 ---
 
+## 📖 Documentation
 
-## 1. [Installation](./installation.md)
-## 2. Running GMTSAR+
-
-# run_sbas.sh
-
-End-to-end SBAS runner based on GMTSAR+.
-
-This script wraps the complete workflow into a single command, including:
-1) AOI bbox extraction from a vector file (KML)
-2) Sentinel-1 burst/SAFE downloading via `download_s1.py` → `burst2stack`
-3) precise orbit download via `eof`
-4) SBAS processing chain: `pSAR_gmtsar_s1.py` → `meta_creator.py` → `gpkg_wrapper.py`
+1. [Installation](./installation.md)  
+2. Running GMTSAR+
 
 ---
 
-## usage
+## 🚀 run_sbas.sh
+
+**End-to-end SBAS runner based on GMTSAR+.**
+
+This script wraps the complete workflow into a single command, including:
+
+1. AOI bbox extraction from a vector file (KML)  
+2. Sentinel-1 burst/SAFE downloading via `download_s1.py` → `burst2stack`  
+3. precise orbit download via `eof`  
+4. SBAS processing chain:  
+   `pSAR_gmtsar_s1.py` → `meta_creator.py` → `gpkg_wrapper.py`
+
+---
+
+## 🧾 Usage
 
 ```text
 usage: run_sbas.sh [-h|--help]
@@ -33,20 +38,20 @@ usage: run_sbas.sh [-h|--help]
 
 ---
 
-## description
+## 📝 Description
 
 Run a full SBAS workflow (download → SBAS processing → export) in one command.
 
 - The AOI is read from `--kml` (any vector file supported by GeoPandas/Fiona).
-- The script computes the AOI bounding box in **EPSG:4326**, then formats it as:
+- The script computes the AOI bounding box in **EPSG:4326**, then formats it as:  
   `west,east,south,north` (required by `pSAR_gmtsar_s1.py -roi`).
 - Downloaded Sentinel-1 data are stored under `./<outdir>` in the working directory.
-- Precise orbit files are downloaded to:
+- Precise orbit files are downloaded to:  
   `$S1_ORB/aux_poeorb`.
 
 ---
 
-## outputs
+## 📦 Outputs
 
 Generated under `workdir`:
 
@@ -61,38 +66,41 @@ Generated under `workdir`:
 
 ---
 
-## examples
+## ▶️ Examples
 
 ```bash
 run_sbas.sh --kml airport.kml --st 20240101 --ed 20240131 \
             --rel_orbit 11 --tmpbase 12 --rlook 20 --azlook 4
 ```
+
 ---
-```
 
-
-## 🚀 1. Configure Data Access Accounts
+## 🔐 1. Configure Data Access Accounts
 
 Before running the workflow, ensure the following accounts are configured with valid credentials in your `.netrc` file:
 
-- `machine urs.earthdata.nasa.gov` – NASA Earthdata
-- `machine dataspace.copernicus.eu` – Copernicus Dataspace
+- `machine urs.earthdata.nasa.gov` – NASA Earthdata  
+- `machine dataspace.copernicus.eu` – Copernicus Dataspace  
 
 ---
 
 ## ⚙️ 2. Workflow Overview
 
 ### Workflow Diagram
+
 ![Workflow](https://github.com/Bingquan-InSAR/GMTSAR-X/blob/main/docs/figures/workflow.jpg?raw=true)
 
 ---
+
 ## 🛰️ 3. Example
 
+<img src="https://github.com/Bingquan-InSAR/GMTSAR-X/blob/main/docs/figures/Fig1.jpg?raw=true" width="800" />
 
-  <img src="https://github.com/Bingquan-InSAR/GMTSAR-X/blob/main/docs/figures/Fig1.jpg?raw=true" width="800" />
-  <img src="https://github.com/Bingquan-InSAR/GMTSAR-X/blob/main/docs/figures/Fig4.jpg?raw=true" width="800" />
+<br/>
 
+<img src="https://github.com/Bingquan-InSAR/GMTSAR-X/blob/main/docs/figures/Fig4.jpg?raw=true" width="800" />
 
+---
 
 ## 📬 4. Contact
 
@@ -106,5 +114,9 @@ Feel free to [open an issue](https://github.com/Bingquan-InSAR/GMTSAR-X/issues) 
 - [GMTSAR GitHub Repository](https://github.com/gmtsar/gmtsar)  
 - [INSAR_G2S GitHub Repository](https://github.com/dedetmix/INSAR_G2S)
 
-## Acknowledgment
+---
+
+## 🙏 Acknowledgment
+
 We gratefully acknowledge ESA, PhilSA, and all project members for their contributions.
+
