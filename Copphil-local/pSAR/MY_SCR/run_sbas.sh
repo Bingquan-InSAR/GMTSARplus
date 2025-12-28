@@ -177,8 +177,7 @@ rm -rf raw/*/*/*tiff 2>/dev/null || true
 # Wrap to GPKG output (if this is part of your standard deliverable)
 meta_creator.py -method SBAS
 cp sbas/output.csv .
-gpkg_wrapper.py --input .
-
+gpkg_wrapper.py --csv output.csv --meta output.txt -p EPSG:4326
 echo "[INFO] DONE."
 echo "[INFO] Working directory: $(pwd)"
 echo "[INFO] SAFE directory: $(pwd)/${OUTDIR}"
