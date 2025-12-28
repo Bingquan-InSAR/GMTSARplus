@@ -37,7 +37,7 @@ source ~/.bashrc
 conda activate gmtsar_python
 
 # Change this if you want to run elsewhere:
-#cd /home/process
+cd /home/process
 
 # -----------------------------
 # Parse CLI arguments
