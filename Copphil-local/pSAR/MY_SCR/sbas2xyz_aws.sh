@@ -8,7 +8,20 @@
 #   Outputs XYZ files and gridded products for further analysis.
 ###############################################################################
 #gmt grdsample ../topo/dem.grd `gmt grdinfo vel_ll.grd -I3.5s/3s` -Gdem_cut.grd
-gmt grdsample ../topo/dem.grd -Gdem_cut.grd -Rvel_ll.grd -I0.000972222222156/0.000833333333355
+#gmt grdsample ../topo/dem.grd -Gdem_cut.grd -Rvel_ll.grd -I0.000972222222156/0.000833333333355
+
+inc=$(gmt grdinfo -I vel_ll.grd | sed 's/^-I//' | awk -F/ '{
+  x=$1; y=$2;
+  if (x ~ /s$/){sub(/s$/,"",x); x=x/3600}
+  else if (x ~ /m$/){sub(/m$/,"",x); x=x/60}
+  else {sub(/[a-zA-Z]$/,"",x)}
+  if (y ~ /s$/){sub(/s$/,"",y); y=y/3600}
+  else if (y ~ /m$/){sub(/m$/,"",y); y=y/60}
+  else {sub(/[a-zA-Z]$/,"",y)}
+  printf "-I%.15f/%.15f", x, y
+}')
+
+gmt grdsample ../topo/dem.grd -Gdem_cut.grd -Rvel_ll.grd $inc
 
 gmt grd2xyz vel_ll.grd -s > vel_ll.xyz 
 
@@ -27,7 +40,7 @@ grep "HEADING_DEG" T0/geo_T*.azi.rsc | awk '{print $2}' > heading
 grep "INCIDENCE" T0/geo_T*.azi.rsc| awk '{print $2}' >incidence
 
 
-ls -d ../DATA/S1_ZIP_RAW//*SAFE>zip_list
+ls -tdr ../DATA/S1_ZIP_RAW//*SAFE>zip_list
 while read -r line; do
     date=$(echo "$line" | sed -E 's/.*_([0-9]{8})T.*/\1/')
     echo "$date"
@@ -71,5 +84,19 @@ done
 #range and azimuth
 proj_ll2ra_ascii.csh ../merge/topo/trans.dat vel_ll.xyz vel_ra.xyz
 
-rmse.py
-gmt grd2xyz rmse_ll.nc -s > rmse.xyz
+#velocity std
+# Read the first and last date from data_list
+first_date=$(head -n 1 date)
+last_date=$(tail -n 1 date)
+# Convert dates to seconds since epoch (Unix timestamp)
+first_epoch=$(date -d "$first_date" +%s)
+last_epoch=$(date -d "$last_date" +%s)
+# Calculate the difference in seconds
+diff_seconds=$((last_epoch - first_epoch))
+# Convert seconds to years (365 days per year)
+diff_years=$(echo "scale=4; $diff_seconds / (60*60*24*365)" | bc)
+# Get the last .grd file from disp_list
+last_grd=$(tail -n 1 disp_list)
+# Run gmt grdmath: | vel_ll.grd - (last_grd * 4) |
+gmt grdmath vel_ll.grd $diff_years MUL "${last_grd%.*}_ll.grd"  SUB ABS = vel_std.grd
+gmt grd2xyz vel_std.grd -s > vel_std.xyz
