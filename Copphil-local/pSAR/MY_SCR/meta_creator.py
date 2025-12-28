@@ -46,8 +46,9 @@ LIST_S1:[{list_s1}]
 """
 
 # --- Write to metadata text file ---
-output_file = 'output.csv'
+output_file = 'output.txt'
 with open(output_file, "w") as f:
     f.write(output_content)
 
 print(f"Metadata file written to: {output_file}")
+
