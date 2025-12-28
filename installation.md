@@ -14,8 +14,8 @@ A Docker image can be built directly from the provided `Dockerfile`, which encap
 Build the Docker image:
 
 ```bash
-git clone https://github.com/Bingquan-InSAR/GMTSARplus.git
-cd GMTSARplus-main/
+git clone git@github.com:Bingquan-InSAR/GMTSARplus.git
+cd GMTSARplus/
 sudo docker build --rm -t insar_itc:v1 .
 ```
 
