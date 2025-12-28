@@ -1,4 +1,4 @@
-# InSAR Time Series Tool with GMTSAR and StaMPS
+# InSAR Time Series Tool with GMTSAR
 
 This repository provides an **InSAR time series processing workflow** based on **GMTSAR**, optimized for use on a **local workstation**.
 
@@ -13,7 +13,7 @@ This repository provides an **InSAR time series processing workflow** based on *
 
 ## 🚀 run_sbas.sh
 
-**End-to-end SBAS runner based on GMTSAR+.**
+**End-to-end SBAS processing based on GMTSAR+.**
 
 This script wraps the complete workflow into a single command, including:
 
