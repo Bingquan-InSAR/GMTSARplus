@@ -1607,9 +1607,9 @@ if et >= 3:
         #
         if len(np.where(iws_arr != 0)[0])<2:
             print(" Progress: less than 2 swaths need to be processed. Stop here!")
-            flag = np.where(iws_arr == 1)[0]+1
-            goStr = 'sbas_gmtsar_burst.sh %d' % \
-                     (flag)
+            flag = (np.where(iws_arr == 1)[0] + 1).item()
+            goStr = f'sbas_gmtsar_burst.sh {flag}'
+            os.system(goStr)
             sys.exit(0) 
             
               
