@@ -1,108 +1,116 @@
 # Script Descriptions and Usage (Processing Order)
 
-This document provides brief descriptions and example usage for the core scripts used in the GMTSAR+ SBAS workflow, organized by **processing order**. The explanations are intentionally concise and focus on how each script is typically used within this repository.
+This document describes the core scripts used in the GMTSAR+ SBAS workflow, **following the exact processing logic illustrated in the workflow diagram** (data download → GMTSAR processing → SBAS inversion → visualization and export). Descriptions are intentionally concise and example-driven.
 
 ---
 
-## 1. Data Download and Preparation
+## Step 1. Data Downloading
+
+This step prepares all input datasets required for InSAR processing, including Sentinel-1 SAR images, DEM, and precise orbit files.
 
 ### `download_s1.py`
-**Purpose**  
-Download Sentinel-1 data for a given area of interest (AOI) and time range, and prepare inputs for TOPS burst processing.
+**Role in workflow**  
+Entry point for data acquisition. It reads a KML-defined AOI, determines the bounding box, and orchestrates Sentinel-1 data preparation.
 
-**Key features**
-- Reads AOI from a vector file (e.g. KML)
-- Computes bounding box in EPSG:4326
-- Calls `burst2stack` with the computed extent
+**Main functions**
+- Read AOI from KML (or other vector formats)
+- Compute AOI bounding box in EPSG:4326
+- Call `burst2stack` to download and organize Sentinel-1 TOPS bursts
 
 **Example**
 ```bash
 python download_s1.py \
-  --input aoi.kml \
-  --rel-orbit 155 \
-  --start-date 2025-04-01 \
-  --end-date 2025-05-31
+  --input p32_f544.kml \
+  --rel-orbit 32 \
+  --start-date 2022-01-01 \
+  --end-date 2024-12-31
 ```
 
 ---
 
 ### `burst2stack`
-**Purpose**  
-Generate Sentinel-1 TOPS burst stacks for a given relative orbit, time range, and spatial extent.
+**Role in workflow**  
+Download and stack Sentinel-1 TOPS bursts covering the AOI and time range.
 
 **Documentation**  
-Full documentation and usage are provided by ASF:
+Full usage is provided by ASF:
 - https://github.com/ASFHyP3/burst2safe
 
-**Typical usage (called internally)**
+**Typical call (internal)**
 ```bash
-burst2stack --rel-orbit 155 \
-            --start-date 2025-04-01 \
-            --end-date 2025-05-31 \
+burst2stack --rel-orbit 32 \
+            --start-date 2022-01-01 \
+            --end-date 2024-12-31 \
             --extent lon_min lat_min lon_max lat_max
 ```
 
 ---
 
-### `eof`
-**Purpose**  
-Download Sentinel-1 precise or restituted orbit files (EOFs), required for accurate InSAR processing.
-
-**Documentation**  
-Orbit download functionality is provided via SentinelSat:
-- https://github.com/sentinelsat/sentinelsat
-
-**Notes**  
-This step is usually handled automatically when required orbit files are missing.
-
----
-
 ### `pSAR_srtmdownload.py`
-**Purpose**  
-Download and prepare DEM data (SRTM-based) for the processing area. The script mainly relies on the `elevation` Python package.
+**Role in workflow**  
+Download and prepare DEM data covering the processing area.
 
-**Key dependency**  
+**Notes**
+- Primarily based on the Python package `elevation`
+- DEM is used later for topographic phase removal and geocoding
+
+**Reference**  
 - https://pypi.org/project/elevation/
 
 **Example**
 ```bash
-python pSAR_srtmdownload.py 119.5,120.5,14.5,15.5
+python pSAR_srtmdownload.py 119.63,122.10,14.70,15.76
 ```
 
 ---
 
-## 2. GMTSAR Processing
+### `eof`
+**Role in workflow**  
+Download Sentinel-1 precise or restituted orbit files required for accurate co-registration and interferogram generation.
+
+**Reference**  
+- https://github.com/sentinelsat/sentinelsat
+
+**Notes**  
+Orbit files are usually downloaded automatically when missing.
+
+---
+
+## Step 2. SBAS Time-Series Deformation Generation
+
+This step performs the core GMTSAR and SBAS processing to generate deformation time series.
 
 ### `pSAR_gmtsar_s1.py`
-**Purpose**  
-Main GMTSAR processing driver for Sentinel-1 TOPS data. It controls the full InSAR workflow, including:
-- SAFE unpacking and preprocessing
-- DEM handling
-- Baseline calculation
-- Interferogram generation
-- Unwrapping and multilooking
+**Role in workflow**  
+Main GMTSAR processing driver responsible for generating interferograms and preparing inputs for SBAS inversion.
 
-**Typical usage**
+**Processing stages**
+- Primary image selection
+- SLC co-registration
+- Perpendicular baseline configuration
+- Interferogram generation
+- Topographic phase removal
+- Filtering, unwrapping, and geocoding
+
+**Example**
 ```bash
 pSAR_gmtsar_s1.py \
-  -roi west,east,south,north \
+  -roi 119.63,122.10,14.70,15.76 \
   -tmpbase 36 \
+  -s1dir safe \
   -rlook 20 -azlook 4
 ```
 
 ---
 
-## 3. SBAS Time-Series Processing
-
 ### `sbas_gmtsar.sh`
-**Purpose**  
-Run the SBAS time-series inversion using GMTSAR outputs and export the results to CSV format.
+**Role in workflow**  
+Perform SBAS inversion using GMTSAR-generated interferograms to produce deformation time series.
 
-**Main steps**
-- Prepare `intf.tab` and `scene.tab`
-- Run `sbas` inversion
-- Geocode velocity results
-- Export SBAS results
+**Main functions**
+- Build `intf.tab` and `scene.tab`
+- Apply small-baseline inversion
+- Generate SBAS velocity and displacement products
 
 **Example**
 ```bash
@@ -112,13 +120,13 @@ bash sbas_gmtsar.sh
 ---
 
 ### `meta_creator.py`
-**Purpose**  
-Generate a simple metadata text file (`output.txt`) from Sentinel-1 SAFE files, used later for product export.
+**Role in workflow**  
+Generate metadata describing the SBAS processing configuration and Sentinel-1 inputs.
 
 **Key outputs**
 - APS correction method
-- DEM type
-- List of Sentinel-1 input products
+- DEM source
+- List of Sentinel-1 SAFE products
 
 **Example**
 ```bash
@@ -127,15 +135,35 @@ python meta_creator.py -method SBAS
 
 ---
 
-## 4. Product Export
+## Step 3. Results Visualization and Export
+
+This step converts SBAS results into user-friendly geospatial products.
+
+### `vis_kmz.py`
+**Role in workflow**  
+Convert SBAS CSV results into KMZ files for visualization in Google Earth.
+
+**Features**
+- Velocity-colored points
+- Interactive displacement time series
+- Embedded colorbar
+
+**Example**
+```bash
+python vis_kmz.py output.csv -vmin -100 -vmax 100
+```
+
+---
 
 ### `gpkg_wrapper.py`
-**Purpose**  
-Convert SBAS results in CSV format into standard geospatial products:
+**Role in workflow**  
+Export SBAS results to standard GIS formats for desktop analysis.
+
+**Outputs**
 - GeoPackage (`.gpkg`)
 - XML metadata file
 
-**Typical usage**
+**Example**
 ```bash
 python gpkg_wrapper.py \
   --csv output.csv \
@@ -144,24 +172,6 @@ python gpkg_wrapper.py \
 
 ---
 
-## 5. Visualization
-
-### `vis_kmz.py`
-**Purpose**  
-Generate KMZ/KML visualization products from SBAS CSV results, including:
-- Colored velocity points
-- Interactive time-series plots
-- Embedded colorbars
-
-**Example**
-```bash
-python vis_kmz.py output.csv
-```
-
----
-
 ## Notes
-- Most users do not need to run these scripts individually; they are orchestrated by `run_sbas.sh`.
-- Advanced users may customize or re-run individual steps for debugging or experimentation.
-
-
+- In practice, the entire workflow is executed via a single command using `run_sbas.sh`.
+- Individual scripts are documented here for clarity, debugging, and advanced customization.
