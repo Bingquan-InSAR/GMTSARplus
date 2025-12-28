@@ -88,7 +88,9 @@ Before running the workflow, ensure the following accounts are configured with v
 
 ### Workflow Diagram
 
-![Workflow](https://github.com/Bingquan-InSAR/GMTSAR-X/blob/main/docs/figures/workflow.jpg?raw=true)
+<p align="center">
+  <img src="https://github.com/Bingquan-InSAR/GMTSAR-X/blob/main/docs/figures/workflow.jpg?raw=true" width="700" />
+</p>
 
 ---
 
