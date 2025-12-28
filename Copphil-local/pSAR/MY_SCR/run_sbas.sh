@@ -22,7 +22,7 @@ set -euo pipefail
 #   - conda env: gmtsar_python
 #   - download_s1.py wrapper script available
 #   - burst2stack available in PATH
-#   - meta_creator.py / pSAR_gmtsar_s1_aws.py / sbas_gmtsar.sh in PATH
+#   - meta_creator.py / pSAR_gmtsar_s1.py / sbas_gmtsar.sh in PATH
 #
 # Usage:
 #   run_sbas.sh --kml <aoi.kml> --st <YYYYMMDD> --ed <YYYYMMDD> \
