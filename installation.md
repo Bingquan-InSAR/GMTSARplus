@@ -10,7 +10,7 @@ Two installation options are provided:
 ### Option 1 (recommended): Automatic installation (Docker image)
 
 The recommended approach is to build and run the Docker image defined by the provided `Dockerfile`.  
-This image encapsulates **GMTSARPlus** and all required dependencies (e.g., GMT, GDAL, NetCDF), ensuring a fully reproducible environment.
+This image encapsulates **GMTSAR+** and all required dependencies (e.g., GMT, GDAL, NetCDF), ensuring a fully reproducible environment.
 
 Build the Docker image:
 
