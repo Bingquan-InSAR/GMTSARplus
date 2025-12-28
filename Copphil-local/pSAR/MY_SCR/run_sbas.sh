@@ -16,23 +16,29 @@ set -euo pipefail
 #        - write results to --output-dir ./safe
 #   4) (Optional) download precise orbit files via `eof` if $S1_ORB is set
 #   5) Run the SBAS processing chain:
-#        meta_creator.py -> pSAR_gmtsar_s1_aws.py -> sbas_gmtsar.sh
+#        pSAR_gmtsar_s1.py
 #
 # Requirements:
 #   - conda env: gmtsar_python
 #   - download_s1.py wrapper script available
 #   - burst2stack available in PATH
-#   - meta_creator.py / pSAR_gmtsar_s1.py / sbas_gmtsar.sh in PATH
-#
-# Usage:
-#   run_sbas.sh --kml <aoi.kml> --st <YYYYMMDD> --ed <YYYYMMDD> \
-#               --rel_orbit <int> --tmpbase <days> --rlook <int> --azlook <int>
-#
-# Example:
-#   run_sbas.sh --kml airport.kml --st 20240101 --ed 20240131 \
-#               --rel_orbit 11 --tmpbase 12 --rlook 20 --azlook 4
+#   - pSAR_gmtsar_s1.py / meta_creator.py / gpkg_wrapper.py in PATH
 # -----------------------------------------------------------------------------
 
+usage() {
+  cat <<'EOF'
+usage: run_sbas.sh [-h|--help]
+                   --kml <aoi.kml)>
+                   --st <YYYYMMDD> --ed <YYYYMMDD>
+                   --rel_orbit <int>
+                   --tmpbase <days>
+                   --rlook <int> --azlook <int>
+EOF
+}
+
+# -----------------------------
+# Environment
+# -----------------------------
 source ~/.bashrc
 conda activate gmtsar_python
 
@@ -52,7 +58,12 @@ AZLOOK=""
 
 while [[ $# -gt 0 ]]; do
   key="$1"
-  case $key in
+  case "$key" in
+    -h|--help)
+      usage
+      exit 0
+      ;;
+
     --kml)        KML="$2"; shift 2 ;;
     --st)         ST="$2"; shift 2 ;;
     --ed)         ED="$2"; shift 2 ;;
@@ -60,20 +71,23 @@ while [[ $# -gt 0 ]]; do
     --tmpbase)    TMPBASE="$2"; shift 2 ;;
     --rlook)      RLOOK="$2"; shift 2 ;;
     --azlook)     AZLOOK="$2"; shift 2 ;;
+
     *)
-      echo "Unknown option: $1"
+      echo "Unknown option: $1" >&2
+      usage >&2
       exit 1
       ;;
   esac
 done
 
-[[ -z "$KML" ]]       && { echo "Error: --kml is required"; exit 1; }
-[[ -z "$ST" ]]        && { echo "Error: --st is required"; exit 1; }
-[[ -z "$ED" ]]        && { echo "Error: --ed is required"; exit 1; }
-[[ -z "$REL_ORBIT" ]] && { echo "Error: --rel_orbit is required"; exit 1; }
-[[ -z "$TMPBASE" ]]   && { echo "Error: --tmpbase is required"; exit 1; }
-[[ -z "$RLOOK" ]]     && { echo "Error: --rlook is required"; exit 1; }
-[[ -z "$AZLOOK" ]]    && { echo "Error: --azlook is required"; exit 1; }
+# Required args check
+[[ -z "$KML" ]]       && { echo "Error: --kml is required" >&2; usage >&2; exit 1; }
+[[ -z "$ST" ]]        && { echo "Error: --st is required" >&2; usage >&2; exit 1; }
+[[ -z "$ED" ]]        && { echo "Error: --ed is required" >&2; usage >&2; exit 1; }
+[[ -z "$REL_ORBIT" ]] && { echo "Error: --rel_orbit is required" >&2; usage >&2; exit 1; }
+[[ -z "$TMPBASE" ]]   && { echo "Error: --tmpbase is required" >&2; usage >&2; exit 1; }
+[[ -z "$RLOOK" ]]     && { echo "Error: --rlook is required" >&2; usage >&2; exit 1; }
+[[ -z "$AZLOOK" ]]    && { echo "Error: --azlook is required" >&2; usage >&2; exit 1; }
 
 # Convert YYYYMMDD -> YYYY-MM-DD
 ST_ISO="${ST:0:4}-${ST:4:2}-${ST:6:2}"
@@ -85,12 +99,11 @@ mkdir -p "$OUTDIR"
 
 # Path to your KML->bbox->burst2stack wrapper (adjust if needed)
 DOWNLOAD_S1_PY="/home/software/Copphil-local/pSAR/MY_SCR/download_s1.py"
-[[ -f "$DOWNLOAD_S1_PY" ]] || { echo "ERROR: download_s1.py not found: $DOWNLOAD_S1_PY"; exit 1; }
+[[ -f "$DOWNLOAD_S1_PY" ]] || { echo "ERROR: download_s1.py not found: $DOWNLOAD_S1_PY" >&2; exit 1; }
 
 # -----------------------------
 # Compute AOI bbox (ROI string) from the input vector
-#
-# pSAR_gmtsar_s1_aws.py expects:
+# pSAR_gmtsar_s1.py expects:
 #   -roi "west,east,south,north"
 # Here we compute bbox in EPSG:4326 and format as:
 #   minx,maxx,miny,maxy  -> west,east,south,north
@@ -126,15 +139,11 @@ print(f"{minx:.6f},{maxx:.6f},{miny:.6f},{maxy:.6f}")
 PY
 )
 
-[[ -n "$ROI" ]] || { echo "ERROR: Failed to compute ROI from $KML"; exit 1; }
+[[ -n "$ROI" ]] || { echo "ERROR: Failed to compute ROI from $KML" >&2; exit 1; }
 echo "[INFO] AOI ROI (west,east,south,north) = $ROI"
 
 # -----------------------------
 # Download bursts / SAFE via burst2stack (called inside download_s1.py)
-#
-# Important:
-# - burst2stack uses --output-dir (NOT --outdir)
-# - Do NOT pass '--' as a separator
 # -----------------------------
 echo "[INFO] Downloading bursts via download_s1.py -> burst2stack"
 echo "[INFO] rel_orbit=${REL_ORBIT}, ${ST_ISO} to ${ED_ISO}, output-dir=./${OUTDIR}"
@@ -161,7 +170,6 @@ fi
 # Run SBAS processing (single run, using ./safe as S1 directory)
 # -----------------------------
 echo "[INFO] Running SBAS workflow..."
-#
 
 pSAR_gmtsar_s1.py \
   -tmpbase "$TMPBASE" \
@@ -173,12 +181,11 @@ pSAR_gmtsar_s1.py \
 # Clean up large intermediate TIFFs if they exist
 rm -rf raw/*/*/*tiff 2>/dev/null || true
 
-
 # Wrap to GPKG output (if this is part of your standard deliverable)
 meta_creator.py -method SBAS
 cp sbas/output.csv .
 gpkg_wrapper.py --csv output.csv --meta output.txt -p EPSG:4326
+
 echo "[INFO] DONE."
 echo "[INFO] Working directory: $(pwd)"
 echo "[INFO] SAFE directory: $(pwd)/${OUTDIR}"
-
