@@ -71,19 +71,5 @@ done
 #range and azimuth
 proj_ll2ra_ascii.csh ../merge/topo/trans.dat vel_ll.xyz vel_ra.xyz
 
-#velocity std
-# Read the first and last date from data_list
-first_date=$(head -n 1 date)
-last_date=$(tail -n 1 date)
-# Convert dates to seconds since epoch (Unix timestamp)
-first_epoch=$(date -d "$first_date" +%s)
-last_epoch=$(date -d "$last_date" +%s)
-# Calculate the difference in seconds
-diff_seconds=$((last_epoch - first_epoch))
-# Convert seconds to years (365 days per year)
-diff_years=$(echo "scale=4; $diff_seconds / (60*60*24*365)" | bc)
-# Get the last .grd file from disp_list
-last_grd=$(tail -n 1 disp_list)
-# Run gmt grdmath: | vel_ll.grd - (last_grd * 4) |
-gmt grdmath vel_ll.grd $diff_years MUL "${last_grd%.*}_ll.grd"  SUB ABS = vel_std.grd
-gmt grd2xyz vel_std.grd -s > vel_std.xyz
+rmse.py
+gmt grd2xyz rmse_ll.nc -s > rmse.xyz
