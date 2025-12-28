@@ -41,7 +41,7 @@ Run a full SBAS workflow (download → SBAS processing → export) in one comman
 - The script computes the AOI bounding box in **EPSG:4326**, then formats it as:
   `west,east,south,north` (required by `pSAR_gmtsar_s1.py -roi`).
 - Downloaded Sentinel-1 data are stored under `./<outdir>` in the working directory.
-- If `S1_ORB` is set and `--no_orbit` is not used, precise orbit files are downloaded to:
+- Precise orbit files are downloaded to:
   `$S1_ORB/aux_poeorb`.
 
 ---
