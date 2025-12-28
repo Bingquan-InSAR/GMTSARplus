@@ -177,7 +177,7 @@ rm -rf raw/*/*/*tiff 2>/dev/null || true
 # Wrap to GPKG output (if this is part of your standard deliverable)
 meta_creator.py -method SBAS
 cp sbas/output.csv .
-gpkg_wrapper.py --input . --extension .gpkg
+gpkg_wrapper.py --input .
 
 echo "[INFO] DONE."
 echo "[INFO] Working directory: $(pwd)"
