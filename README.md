@@ -24,7 +24,7 @@ This script wraps the complete workflow into a single command, including:
 
 ```text
 usage: run_sbas.sh [-h|--help]
-                   --kml <aoi.(kml|geojson|gpkg|...)>
+                   --kml <aoi.kml)>
                    --st <YYYYMMDD> --ed <YYYYMMDD>
                    --rel_orbit <int>
                    --tmpbase <days>
