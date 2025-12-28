@@ -57,9 +57,5 @@ GMTSAR_proj_ra2ll.csh ../merge/topo/trans.dat vel.grd vel_ll.grd
 sbas2xyz_aws.sh
 export_csv.py
 
-cluster=$(basename "$PWD")
-orbit=$(basename "$(dirname "$PWD")")
-csv_name="${orbit}_${cluster}.csv"
 
-mv output.csv ../../"$csv_name"
 
