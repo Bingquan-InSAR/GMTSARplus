@@ -94,11 +94,12 @@ Before running the workflow, ensure the following accounts are configured with v
 
 ## 🛰️ 3. Example
 
-<img src="https://github.com/Bingquan-InSAR/GMTSAR-X/blob/main/docs/figures/Fig1.jpg?raw=true" width="400" />
+<p align="center">
+  <img src="https://github.com/Bingquan-InSAR/GMTSAR-X/blob/main/docs/figures/Fig1.jpg?raw=true" width="380" />
+  &nbsp;&nbsp;&nbsp;
+  <img src="https://github.com/Bingquan-InSAR/GMTSAR-X/blob/main/docs/figures/Fig4.jpg?raw=true" width="380" />
+</p>
 
-<br/>
-
-<img src="https://github.com/Bingquan-InSAR/GMTSAR-X/blob/main/docs/figures/Fig4.jpg?raw=true" width="400" />
 
 ---
 
