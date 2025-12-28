@@ -43,8 +43,7 @@ pSAR_gmtsar_s1insar2roi_aws.py ../$F/intf_all T0 ../DATA/S1_ZIP_RAW 4
 grep "HEADING_DEG" T0/geo_T*.azi.rsc | awk '{print $2}' > heading
 grep "INCIDENCE" T0/geo_T*.azi.rsc| awk '{print $2}' >incidence
 
-
-ls -d ../DATA/S1_ZIP_RAW//*SAFE>zip_list
+ls -tdr ../DATA/S1_ZIP_RAW//*SAFE>zip_list
 while read -r line; do
     date=$(echo "$line" | sed -E 's/.*_([0-9]{8})T.*/\1/')
     echo "$date"
