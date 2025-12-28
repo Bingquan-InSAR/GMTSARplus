@@ -1,12 +1,4 @@
 #!/usr/bin/env python
-###############################################################################
-# Sentinel-1 CSV Output Generator Script
-# Created by Bingquan Li and Ling Chang on August 19, 2025
-#
-# Purpose:
-#   Generate a comprehensive CSV file from multiple .xyz and metadata inputs,
-#   integrating deformation measurements, metadata attributes, and time-series data.
-###############################################################################
 import csv
 import random
 import string
@@ -19,24 +11,24 @@ def generate_code(length=5):
     return ''.join(random.choices(chars, k=length))
 
 # Check if required files exist
-required_files = ['height.xyz', 'vel_ll.xyz', 'vel_std.xyz', 'corr.xyz', 'vel_ra.xyz', 'heading', 'incidence']
+required_files = ['height.xyz', 'vel_ll.xyz', 'rmse.xyz', 'corr.xyz', 'vel_ra.xyz', 'heading', 'incidence']
 for file in required_files:
     if not os.path.isfile(file):
         print(f"Error: {file} is missing.")
         exit(1)
 
 # Open the files and write to output.csv
-with open('height.xyz', 'r') as height_file, open('vel_ll.xyz', 'r') as vel_file, open('vel_std.xyz', 'r') as vel_std_file, \
+with open('height.xyz', 'r') as height_file, open('vel_ll.xyz', 'r') as vel_file, open('rmse.xyz', 'r') as rmse_file, \
      open('corr.xyz', 'r') as corr_file, open('vel_ra.xyz', 'r') as vel_ra_file, open('heading', 'r') as heading_file, \
      open('incidence', 'r') as incidence_file, open('output.csv', 'w', newline='') as outfile:
 
     writer = csv.writer(outfile)
-    writer.writerow(['CODE', 'LAT', 'LON', 'HEIGHT', 'VEL', 'VSDEV', 'COHER', 'Range', 'Azimuth', 'Incidence', 'Heading'])  # Column headers
+    writer.writerow(['CODE', 'LAT', 'LON', 'HEIGHT', 'VEL', 'RMSE', 'COHER', 'Range', 'Azimuth', 'Heading', 'Incidence'])  # Column headers
     
     # Read the lines from other files
     vel_lines = vel_file.readlines()
     vel_ra_lines = vel_ra_file.readlines()
-    vel_std_lines = vel_std_file.readlines()
+    rmse_lines = rmse_file.readlines()
     corr_lines = corr_file.readlines()
 
     # Read heading and incidence
@@ -62,12 +54,12 @@ with open('height.xyz', 'r') as height_file, open('vel_ll.xyz', 'r') as vel_file
                 else:
                     vel_str = ''
 
-                # Process vel_std.xyz (standard deviation of velocity)
-                if i < len(vel_std_lines):
-                    vel_std_parts = vel_std_lines[i].strip().split()
-                    vsdev_str = f"{float(vel_std_parts[2]):.2f}" if len(vel_std_parts) > 2 else ''
+                # Process rmse.xyz
+                if i < len(rmse_lines):
+                    rmse_parts = rmse_lines[i].strip().split()
+                    rmse_str = f"{float(rmse_parts[2]):.2f}" if len(rmse_parts) > 2 else ''
                 else:
-                    vsdev_str = ''
+                    rmse_str = ''
 
                 # Process corr.xyz (correlation)
                 if i < len(corr_lines):
@@ -88,7 +80,7 @@ with open('height.xyz', 'r') as height_file, open('vel_ll.xyz', 'r') as vel_file
                 code = generate_code()
 
                 # Write the row to output.csv
-                writer.writerow([code, lat_str, lon_str, height_str, vel_str, vsdev_str, coher_str, range_str, azimuth_str, incidence_value, heading_value])
+                writer.writerow([code, lat_str, lon_str, height_str, vel_str, rmse_str, coher_str, range_str, azimuth_str, heading_value, incidence_value])
             except (ValueError, IndexError):
                 continue  # Skip invalid lines
 
