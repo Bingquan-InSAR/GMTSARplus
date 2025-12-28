@@ -6,6 +6,24 @@ This repository provides an **InSAR time series processing workflow** based on *
 
 
 ## 1. [Installation](./installation.md)
+## 2. Running GMTSAR+
+
+#### 2.1 Routine workflow `smallbaselineApp.py` ####
+
+MintPy reads a stack of interferograms (unwrapped interferograms, coherence and connected components from SNAPHU if available) and the geometry files (DEM, lookup table, incidence angle, etc.). You need to give the [path to where the files are]and MintPy takes care of the rest!
+
+```bash
+smallbaselineApp.py                         # run with default template 'smallbaselineApp.cfg'
+smallbaselineApp.py <custom_template>       # run with default and custom templates
+smallbaselineApp.py -h / --help             # help
+smallbaselineApp.py -H                      # print    default template options
+smallbaselineApp.py -g                      # generate default template if it does not exist
+smallbaselineApp.py -g <custom_template>    # generate/update default template based on custom template
+
+# Run with --start/stop/dostep options
+smallbaselineApp.py GalapagosSenDT128.txt --dostep velocity  # run step 'velocity' only
+smallbaselineApp.py GalapagosSenDT128.txt --end load_data    # end run after step 'load_data'
+```
 
 
 ## 🚀 1. Configure Data Access Accounts
