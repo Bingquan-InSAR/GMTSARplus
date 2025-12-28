@@ -29,9 +29,6 @@ usage: run_sbas.sh [-h|--help]
                    --rel_orbit <int>
                    --tmpbase <days>
                    --rlook <int> --azlook <int>
-                   [--workdir <dir>]
-                   [--outdir <dir>]
-                   [--no_orbit]
 ```
 
 ---
