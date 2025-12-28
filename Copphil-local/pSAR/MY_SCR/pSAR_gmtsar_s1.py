@@ -1640,6 +1640,8 @@ if et >= 3:
         cnow = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')
         print(" Progress: %s @ %s" % (goStr,cnow))
         os.system(goStr)
+        goStr = 'sbas_gmtsar_aws.sh'
+        os.system(goStr)
         os.chdir(super_topdir)
         #
         if roidir is not None:
