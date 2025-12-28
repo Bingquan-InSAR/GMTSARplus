@@ -9,7 +9,6 @@ This document describes the core scripts used in the GMTSAR+ SBAS workflow, **fo
 This step prepares all input datasets required for InSAR processing, including Sentinel-1 SAR images, DEM, and precise orbit files.
 
 ### `download_s1.py`
-**Role in workflow**  
 Entry point for data acquisition. It reads a KML-defined AOI, determines the bounding box, and orchestrates Sentinel-1 data preparation.
 
 **Main functions**
@@ -29,7 +28,6 @@ python download_s1.py \
 ---
 
 ### `burst2stack`
-**Role in workflow**  
 Download and stack Sentinel-1 TOPS bursts covering the AOI and time range.
 
 **Documentation**  
@@ -47,7 +45,6 @@ burst2stack --rel-orbit 32 \
 ---
 
 ### `pSAR_srtmdownload.py`
-**Role in workflow**  
 Download and prepare DEM data covering the processing area.
 
 **Notes**
@@ -65,7 +62,6 @@ pSAR_srtmdownload.py 119.63,122.10,14.70,15.76
 ---
 
 ### `eof`
-**Role in workflow**  
 Download Sentinel-1 precise or restituted orbit files required for accurate co-registration and interferogram generation.
 
 **Reference**  
@@ -81,7 +77,6 @@ Orbit files are usually downloaded automatically when missing.
 This step performs the core GMTSAR and SBAS processing to generate deformation time series.
 
 ### `pSAR_gmtsar_s1.py`
-**Role in workflow**  
 Main GMTSAR processing driver responsible for generating interferograms and preparing inputs for SBAS inversion.
 
 **Processing stages**
@@ -104,7 +99,6 @@ pSAR_gmtsar_s1.py \
 ---
 
 ### `sbas_gmtsar.sh`
-**Role in workflow**  
 Perform SBAS inversion using GMTSAR-generated interferograms to produce deformation time series.
 
 **Main functions**
@@ -120,7 +114,6 @@ sbas_gmtsar.sh
 ---
 
 ### `meta_creator.py`
-**Role in workflow**  
 Generate metadata describing the SBAS processing configuration and Sentinel-1 inputs.
 
 **Key outputs**
@@ -140,7 +133,6 @@ meta_creator.py -method SBAS
 This step converts SBAS results into user-friendly geospatial products.
 
 ### `vis_kmz.py`
-**Role in workflow**  
 Convert SBAS CSV results into KMZ files for visualization in Google Earth.
 
 **Features**
@@ -156,7 +148,6 @@ python vis_kmz.py output.csv -vmin -100 -vmax 100
 ---
 
 ### `gpkg_wrapper.py`
-**Role in workflow**  
 Export SBAS results to standard GIS formats for desktop analysis.
 
 **Outputs**
