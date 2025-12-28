@@ -39,7 +39,6 @@ list_s1 = ",".join(file_list)
 
 # --- Compose output content ---
 output_content = f"""VARIABLE:VALUE
-PASS:DESCENDING
 APSCorrection:{aps_correction}
 DEM:{dem}
 LIST_S1:[{list_s1}]
