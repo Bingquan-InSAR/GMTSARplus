@@ -10,10 +10,10 @@ This repository provides an **InSAR time series processing workflow** based on *
 
 # run_sbas.sh
 
-End-to-end SBAS runner based on GMTSAR+ (single relative orbit; SBAS only; no StaMPS).
+End-to-end SBAS runner based on GMTSAR+.
 
 This script wraps the complete workflow into a single command, including:
-1) AOI bbox extraction from a vector file (KML/GeoJSON/GPKG/...)
+1) AOI bbox extraction from a vector file (KML)
 2) Sentinel-1 burst/SAFE downloading via `download_s1.py` → `burst2stack`
 3) (Optional) precise orbit download via `eof` (if `S1_ORB` is set)
 4) SBAS processing chain: `pSAR_gmtsar_s1.py` → `meta_creator.py` → `gpkg_wrapper.py`
