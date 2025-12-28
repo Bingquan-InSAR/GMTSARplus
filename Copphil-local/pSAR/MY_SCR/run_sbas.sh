@@ -161,7 +161,7 @@ fi
 # Run SBAS processing (single run, using ./safe as S1 directory)
 # -----------------------------
 echo "[INFO] Running SBAS workflow..."
-#meta_creator.py -method SBAS
+#
 
 pSAR_gmtsar_s1_burst.py \
   -tmpbase "$TMPBASE" \
@@ -176,6 +176,7 @@ rm -rf raw/*/*/*tiff 2>/dev/null || true
 sbas_gmtsar.sh
 
 # Wrap to GPKG output (if this is part of your standard deliverable)
+meta_creator.py -method SBAS
 gpkg_wrapper.py --input . --extension .gpkg
 
 echo "[INFO] DONE."
