@@ -2,14 +2,15 @@
 
 Two installation options are provided:
 
-- **Option 1**: Automatic installation using a pre-configured Docker environment
-- **Option 2 (recommended)**: Install the software by **following the Dockerfile provided in this repository**
+- **Option 1 (recommended)**: Automatic installation using a pre-configured Docker environment  
+- **Option 2**: Manual installation by following the provided `Dockerfile` step by step  
 
 ---
 
 ### Option 1 (recommended): Automatic installation (Docker image)
 
-A Docker image can be built directly from the provided `Dockerfile`, which encapsulates GMTSARPlus and all required dependencies (e.g., GMT, GDAL, NetCDF).
+The recommended approach is to build and run the Docker image defined by the provided `Dockerfile`.  
+This image encapsulates **GMTSARPlus** and all required dependencies (e.g., GMT, GDAL, NetCDF), ensuring a fully reproducible environment.
 
 Build the Docker image:
 
@@ -25,23 +26,24 @@ Run the container with a mounted working directory:
 sudo docker run -it -v /mnt/ESA:/home/process insar_itc:v1 /bin/bash
 ```
 
-Once inside the container, the processing environment is ready for use.
+Once inside the container, the processing environment is fully configured and ready for use.
 
 ---
 
 ### Option 2: Manual installation by following the Dockerfile (step-by-step)
 
-If you cannot (or prefer not to) run the container directly, you can **manually install the toolchain on your host** by using the provided `Dockerfile` as a **build recipe**.
+If you cannot (or prefer not to) run the Docker container directly, you may **manually install the software stack on your host system** by using the provided `Dockerfile` as a **build recipe**.
 
-The `Dockerfile` documents the full software stack and the exact installation order, which helps ensure:
+The `Dockerfile` explicitly defines the complete software stack and the exact installation order, which helps ensure:
 
 - A consistent and reproducible environment  
-- Fewer dependency/version conflicts across operating systems  
-- Comparable behavior across machines and platforms  
+- Reduced dependency and version conflicts across operating systems  
+- Comparable behavior across different machines and platforms  
 
 **How to use this option**
 
 - Open the `Dockerfile` and follow it **from top to bottom**.
-- Execute the installation commands on your host system **in the same order** as they appear in the Dockerfile.
-- Use the same versions and environment settings (e.g., system packages, conda/pip dependencies, environment variables).
+- Execute each installation command on your host system **in the same order** as specified.
+- Use the same software versions and environment settings (e.g., system packages, conda/pip dependencies, environment variables).
 
+> **Note**: In this option, the Dockerfile serves as documentation for the installation procedure; the container itself is not built or executed.
