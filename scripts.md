@@ -1,4 +1,4 @@
-# Script Descriptions and Usage (Processing Order)
+# Script Descriptions and Usage
 
 This document describes the core scripts used in the GMTSAR+ SBAS workflow, **following the exact processing logic illustrated in the workflow diagram** (data download → GMTSAR processing → SBAS inversion → visualization and export). Descriptions are intentionally concise and example-driven.
 
