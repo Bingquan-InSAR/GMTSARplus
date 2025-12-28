@@ -74,6 +74,7 @@ run_sbas.sh --kml airport.kml --st 20240101 --ed 20240131 \
 ```
 
 ---
+For detailed explanations of the core scripts used in this workflow (e.g., `pSAR_gmtsar_s1.py`, `meta_creator.py`, `gpkg_wrapper.py`, `sbas_gmtsar.sh`, `vis_kmz.py`, `download_s1.py`, `eof`, `burst2stack`, and `pSAR_srtmdownload.py`), please refer to [`scripts.md`](scripts.md).
 
 ## 🔐 1. Configure Data Access Accounts
 
