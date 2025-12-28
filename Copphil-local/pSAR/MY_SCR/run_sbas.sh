@@ -173,10 +173,10 @@ pSAR_gmtsar_s1.py \
 # Clean up large intermediate TIFFs if they exist
 rm -rf raw/*/*/*tiff 2>/dev/null || true
 
-sbas_gmtsar.sh
 
 # Wrap to GPKG output (if this is part of your standard deliverable)
 meta_creator.py -method SBAS
+cp sbas/output.csv .
 gpkg_wrapper.py --input . --extension .gpkg
 
 echo "[INFO] DONE."
