@@ -7,7 +7,7 @@ Two installation options are provided:
 
 ---
 
-### Option 1: Automatic installation (Docker image)
+### Option 1 (recommended): Automatic installation (Docker image)
 
 A Docker image can be built directly from the provided `Dockerfile`, which encapsulates GMTSARPlus and all required dependencies (e.g., GMT, GDAL, NetCDF).
 
@@ -29,14 +29,19 @@ Once inside the container, the processing environment is ready for use.
 
 ---
 
-### Option 2 (recommended): Installation via Dockerfile
+### Option 2: Manual installation by following the Dockerfile (step-by-step)
 
-Users are **strongly encouraged** to install the software by following the `Dockerfile` provided in this repository.
+If you cannot (or prefer not to) run the container directly, you can **manually install the toolchain on your host** by using the provided `Dockerfile` as a **build recipe**.
 
-The `Dockerfile` defines the complete software stack and installation order, and ensures:
+The `Dockerfile` documents the full software stack and the exact installation order, which helps ensure:
 
-- Consistent and reproducible environments  
-- No dependency conflicts across operating systems  
-- Identical behavior across different machines and platforms  
+- A consistent and reproducible environment  
+- Fewer dependency/version conflicts across operating systems  
+- Comparable behavior across machines and platforms  
 
-When using this option, please follow the Dockerfile **step by step (top to bottom)** and install the required dependencies on the host system in the same order.
+**How to use this option**
+
+- Open the `Dockerfile` and follow it **from top to bottom**.
+- Execute the installation commands on your host system **in the same order** as they appear in the Dockerfile.
+- Use the same versions and environment settings (e.g., system packages, conda/pip dependencies, environment variables).
+
