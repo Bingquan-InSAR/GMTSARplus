@@ -141,7 +141,7 @@ RUN echo "machine dataspace.copernicus.eu\n\
 RUN chmod -R +x /home/software/Copphil-local/
 RUN chmod 600 ~/.netrc
 
-WORKDIR /home/
+WORKDIR /home/process
 
 #sudo docker build --rm -t insar_local:v1 .
 #sudo docker run -it -v /mnt/Test:/home/process insar_local:v1 /bin/bash
