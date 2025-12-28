@@ -59,7 +59,7 @@ Download and prepare DEM data covering the processing area.
 
 **Example**
 ```bash
-python pSAR_srtmdownload.py 119.63,122.10,14.70,15.76
+pSAR_srtmdownload.py 119.63,122.10,14.70,15.76
 ```
 
 ---
@@ -114,7 +114,7 @@ Perform SBAS inversion using GMTSAR-generated interferograms to produce deformat
 
 **Example**
 ```bash
-bash sbas_gmtsar.sh
+sbas_gmtsar.sh
 ```
 
 ---
@@ -130,7 +130,7 @@ Generate metadata describing the SBAS processing configuration and Sentinel-1 in
 
 **Example**
 ```bash
-python meta_creator.py -method SBAS
+meta_creator.py -method SBAS
 ```
 
 ---
