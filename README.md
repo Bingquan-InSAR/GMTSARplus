@@ -42,7 +42,7 @@ usage: run_sbas.sh [-h|--help]
 
 Run a full SBAS workflow (download → SBAS processing → export) in one command.
 
-- The AOI is read from `--kml` (any vector file supported by GeoPandas/Fiona).
+- The AOI is read from `--kml`.
 - The script computes the AOI bounding box in **EPSG:4326**, then formats it as:  
   `west,east,south,north` (required by `pSAR_gmtsar_s1.py -roi`).
 - Downloaded Sentinel-1 data are stored under `./<outdir>` in the working directory.
