@@ -163,7 +163,7 @@ fi
 echo "[INFO] Running SBAS workflow..."
 #
 
-pSAR_gmtsar_s1_burst.py \
+pSAR_gmtsar_s1.py \
   -tmpbase "$TMPBASE" \
   -roi "$ROI" \
   -s1dir "$OUTDIR" \
