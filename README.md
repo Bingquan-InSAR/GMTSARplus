@@ -50,9 +50,6 @@ Run a full SBAS workflow (download → SBAS processing → export) in one comman
 
 Generated under `workdir`:
 
-- `./<outdir>/`  
-  Downloaded Sentinel-1 SAFEs/bursts (output of `download_s1.py` / `burst2stack`)
-
 - `sbas/output.csv`  
   SBAS results produced by the processing chain
 
