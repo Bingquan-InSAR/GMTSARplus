@@ -1,6 +1,6 @@
-# InSAR Time-Series Processing with GMTSAR+
+# SBAS Processing with GMTSAR+
 
-This repository provides an **end-to-end InSAR time-series processing workflow** based on **GMTSAR+**, designed for **local workstation deployment** and reproducible SBAS processing.
+This repository provides an **end-to-end SBAS processing workflow** based on **GMTSAR+**, designed for **local workstation deployment** and reproducible SBAS processing.
 
 The workflow integrates data acquisition, interferometric processing, time-series inversion, and product export into a unified command-line interface.
 
@@ -22,7 +22,7 @@ The script encapsulates the complete processing chain into a single command, inc
 1. AOI definition and bounding-box extraction from a vector file (KML)  
 2. Sentinel-1 burst/SAFE acquisition via `download_s1.py` and `burst2stack`  
 3. Precise orbit retrieval using `eof`  
-4. SBAS time-series processing and product generation through  
+4. SBAS processing and product generation through  
    `pSAR_gmtsar_s1.py`, `meta_creator.py`, and `gpkg_wrapper.py`
 
 ---
@@ -42,12 +42,12 @@ usage: run_sbas.sh [-h|--help]
 
 ## 📝 Description
 
-The script executes a complete SBAS workflow—from data download to final product export—in a single command.
+The script executes a complete SBAS workflow from data download to final product export—in a single command.
 
 - The area of interest (AOI) is specified via `--kml`.
 - The AOI bounding box is automatically derived in **EPSG:4326** and formatted as  
   `west,east,south,north`, as required by `pSAR_gmtsar_s1.py (-roi)`.
-- Downloaded Sentinel-1 data are stored in a local working directory (`./<outdir>`).
+- Downloaded Sentinel-1 data are stored in a local working directory (`./safe`).
 - Precise orbit files are retrieved and cached under:  
   `$S1_ORB/aux_poeorb`.
 
