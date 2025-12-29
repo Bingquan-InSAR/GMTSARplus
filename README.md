@@ -124,7 +124,7 @@ Users are encouraged to open an issue or comment on existing issues or pull requ
 
 - GMTSAR GitHub Repository  
 - INSAR_G2S GitHub Repository
-  Bingquan Li, Wanpeng Feng and Ling Chang. **GMTSAR+**: An extended GMTSAR workflow streamlining SBAS products with standardized geospatial outputs. *Submitted to Environmental Modelling & Software*.
+- Bingquan Li, Wanpeng Feng and Ling Chang. **GMTSAR+**: An extended GMTSAR workflow streamlining SBAS products with standardized geospatial outputs. *Submitted to Environmental Modelling & Software*.
 
   
 
