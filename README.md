@@ -4,7 +4,7 @@ This repository provides an **end-to-end SBAS processing workflow** based on **G
 
 The workflow seamlessly integrates **data acquisition**, **interferometric processing**, **time-series inversion**, and **product export** into a unified command-line interface.
 
-During the interferometric processing stage, we use the [**pSAR Python package**](https://github.com/wpfeng/utilities_of_GMTSAR_from_pSAR), developed by **Associate Professor Wanpeng Feng** at **Sun Yat-sen University**.
+During the interferometric processing stage, we use the [**pSAR Python package**], developed by **Associate Professor Wanpeng Feng** at **Sun Yat-sen University**.
 The `pSAR` package offers a suite of modular tools designed to enhance GMTSAR-based SBAS workflows.
 
 The toolkit includes:
