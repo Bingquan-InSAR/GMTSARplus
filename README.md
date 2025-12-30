@@ -4,17 +4,20 @@ This repository provides an **end-to-end SBAS processing workflow** based on **G
 
 The workflow seamlessly integrates **data acquisition**, **interferometric processing**, **time-series inversion**, and **product export** into a unified command-line interface.
 
-During the interferometric processing stage, we incorporate the [**pSAR Python package**](https://github.com/wpfeng/utilities_of_GMTSAR_from_pSAR), developed by **Wanpeng Feng**, which offers a suite of modular tools designed to enhance SBAS InSAR workflows based on GMTSAR.
+During the interferometric processing stage, we incorporate the [**pSAR Python package**](https://github.com/wpfeng/utilities_of_GMTSAR_from_pSAR), developed by **Dr. Wanpeng Feng**, a **tenured Associate Professor at Sun Yat-sen University (China)**.  
+He specializes in InSAR time-series analysis, crustal deformation modeling, and geophysical applications.  
+The `pSAR` package offers a suite of modular tools designed to enhance GMTSAR-based SBAS workflows.
 
 The toolkit includes:
 
 - `pS1`: A lightweight module for reading Sentinel-1 TOPS metadata directly from ZIP archives or extracted folders.
-- `pSAR`: The core module for time-series InSAR processing, including SBAS pair selection, baseline filtering, and metadata management.
+- `pSAR`: The core module for time-series InSAR processing, including SBAS interferogram pair selection, baseline filtering, and metadata management.
 - `pDATA`: A utility module for handling geospatial data formats such as NetCDF, GeoTIFF, and ROI_PAC.
 
 Related GitHub repositories:
 - 🔗 [`utilities_of_GMTSAR_from_pSAR`](https://github.com/wpfeng/utilities_of_GMTSAR_from_pSAR)
 - 🔗 [`pSAR_defsim`](https://github.com/wpfeng/pSAR_defsim)
+
 
 
 
