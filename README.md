@@ -4,7 +4,7 @@ This repository provides an **end-to-end SBAS processing workflow** based on **G
 
 The workflow seamlessly integrates **data acquisition**, **interferometric processing**, **time-series inversion**, and **product export** into a unified command-line interface.
 
-During the interferometric processing stage, we use the [**pSAR Python package**](https://github.com/wpfeng/utilities_of_GMTSAR_from_pSAR), developed by **Associate Professor Wanpeng Feng** at **Sun Yat-sen University**.  
+During the interferometric processing stage, we use the [**pSAR Python package**](https://github.com/wpfeng/pSAR), developed by **Associate Professor Wanpeng Feng** at **Sun Yat-sen University**.  
 During the interferometric processing stage, we use selected scripts from the **pSAR** Python package, developed by Associate Professor **Wanpeng Feng** at Sun Yat-sen University.  
 pSAR is a modular InSAR processing package designed to enhance GMTSAR-based SBAS workflows, supporting Sentinel-1 metadata parsing, SBAS interferogram pair selection, baseline filtering, metadata management, and handling of geospatial formats (e.g., NetCDF, GeoTIFF, ROI_PAC).  
 For details on the provenance of pSAR and how it is used and extended in GMTSAR+, see **[update.md](./update.md)**.
