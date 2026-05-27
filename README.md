@@ -530,12 +530,6 @@ Full Sentinel-1 SAR datasets are not included because of their large volume. Use
 
 ---
 
-## License
-
-GMTSAR+ is released under the MIT License. See the [LICENSE](./LICENSE) file for details.
-
----
-
 ## Contact
 
 Development and discussion primarily take place on GitHub.
