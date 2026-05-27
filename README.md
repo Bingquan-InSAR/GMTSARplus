@@ -1,9 +1,16 @@
+# SBAS Processing with GMTSAR+
 # GMTSAR+
 
+This repository provides an **end-to-end SBAS processing workflow** based on **GMTSAR+**, tailored for **local workstation deployment** and reproducible SBAS analysis.
 **GMTSAR+** is an open-source, Docker-based workflow that extends **GMTSAR** for automated and reproducible Sentinel-1 SBAS-InSAR processing.
 
+The workflow seamlessly integrates **data acquisition**, **interferometric processing**, **time-series inversion**, and **product export** into a unified command-line interface.
 The workflow integrates Sentinel-1 data retrieval, orbit-file acquisition, DEM preparation, GMTSAR-SBAS processing, and standardized geospatial product generation into a unified command-line workflow. It exports InSAR deformation products in **CSV**, **GeoPackage**, **KMZ**, and **XML metadata** formats, supporting visualization, GIS analysis, product sharing, and processing traceability.
 
+During the interferometric processing stage, we use the [**pSAR Python package**](https://github.com/wpfeng/pSAR), developed by **Associate Professor Wanpeng Feng** at **Sun Yat-sen University**.  
+During the interferometric processing stage, we use selected scripts from the **pSAR** Python package, developed by Associate Professor **Wanpeng Feng** at Sun Yat-sen University.  
+pSAR is a modular InSAR processing package designed to enhance GMTSAR-based SBAS workflows, supporting Sentinel-1 metadata parsing, SBAS interferogram pair selection, baseline filtering, metadata management, and handling of geospatial formats (e.g., NetCDF, GeoTIFF, ROI_PAC).  
+For details on the provenance of pSAR and how it is used and extended in GMTSAR+, see **[update.md](./update.md)**.
 GMTSAR+ is designed for local workstation and server-based deployment through Docker. Users do **not** need to manually install GMTSAR, GMT, GDAL/OGR, pSAR utilities, `burst2stack`, `eof`, or other dependencies on the host system.
 
 ---
@@ -133,6 +140,7 @@ which eof
 
 ---
 
+## 📖 Documentation
 ## Data access configuration
 
 Before running automated Sentinel-1 downloads, make sure that valid credentials are configured for the required data services.
@@ -156,12 +164,15 @@ machine dataspace.copernicus.eu
 
 For security, restrict the file permission:
 
+1. [Installation](./installation.md)  
+2. Running GMTSAR+
 ```bash
 chmod 600 ~/.netrc
 ```
 
 ---
 
+## 🚀 `run_sbas.sh`
 ## Quick start
 
 After entering the Docker container, run GMTSAR+ using `run_sbas.sh`.
@@ -181,12 +192,18 @@ This command performs SBAS processing for the AOI defined by `airport.kml` betwe
 
 ---
 
+**An end-to-end SBAS processing wrapper built on GMTSAR+.**
 ## `run_sbas.sh`
 
 `run_sbas.sh` is an end-to-end SBAS processing wrapper built on GMTSAR+.
 
 The script encapsulates the complete processing chain into a single command, including:
 
+1. AOI definition and bounding-box extraction from a vector file (KML)  
+2. Sentinel-1 burst/SAFE acquisition via `download_s1.py` and `burst2stack`  
+3. Precise orbit retrieval using `eof`  
+4. SBAS processing and product generation through  
+   `pSAR_gmtsar_s1.py`, `meta_creator.py`, and `gpkg_wrapper.py`
 1. AOI definition and bounding-box extraction from a KML file
 2. Sentinel-1 burst/SAFE acquisition using `download_s1.py` and `burst2stack`
 3. Precise orbit retrieval using `eof`
@@ -196,15 +213,13 @@ The script encapsulates the complete processing chain into a single command, inc
 
 ---
 
+## 🧾 Usage
 ## Usage
 
 ```text
 usage: run_sbas.sh [-h|--help]
-                   --kml <aoi.kml>
-                   --st <YYYYMMDD> --ed <YYYYMMDD>
-                   --rel_orbit <int>
-                   --tmpbase <days>
-                   --rlook <int> --azlook <int>
+@@ -46,109 +207,313 @@ usage: run_sbas.sh [-h|--help]
+                  --rlook <int> --azlook <int>
 ```
 
 ### Arguments
@@ -277,10 +292,18 @@ The script executes a complete SBAS workflow from data acquisition to final prod
 
 ---
 
+## 📝 Description
 ## Processing workflow
 
+The script executes a complete SBAS workflow from data download to final product export—in a single command.
 If workflow figures are included in the repository, they can be placed under `docs/figures/`.
 
+- The area of interest (AOI) is specified via `--kml`.
+- The AOI bounding box is automatically derived in **EPSG:4326** and formatted as  
+  `west,east,south,north`, as required by `pSAR_gmtsar_s1.py (-roi)`.
+- Downloaded Sentinel-1 data are stored in a local working directory (`./safe`).
+- Precise orbit files are retrieved and cached under:  
+  `$S1_ORB/aux_poeorb`.
 Example:
 
 ```markdown
@@ -293,19 +316,25 @@ If the figure file is not available, remove the image block from this README to 
 
 ---
 
+## 📦 Outputs
 ## Outputs
 
+All outputs are generated within the working directory:
 All outputs are generated within the working directory.
 
 - `sbas/output.csv`  
+  SBAS deformation results produced by the processing chain
   Original SBAS deformation results generated by the GMTSAR-based processing chain.
 
 - `output.csv`  
+  A copy of the SBAS results exported from `sbas/output.csv`
   Standardized CSV output containing point coordinates, velocity, RMSE, and time-series deformation.
 
 - `output.gpkg`  
   GIS-ready GeoPackage product for spatial analysis and visualization.
 
+- `output.gpkg` and `output.xml`  
+  Final geospatial products generated by `gpkg_wrapper.py`
 - `output.kmz`  
   Google Earth visualization product with deformation velocity and point-wise time-series plots.
 
@@ -314,10 +343,16 @@ All outputs are generated within the working directory.
 
 ---
 
+## ▶️ Example
 ## Expected behaviour
 
+```bash
+run_sbas.sh --kml airport.kml --st 20240101 --ed 20240131 \
+            --rel_orbit 11 --tmpbase 12 --rlook 20 --azlook 4
+```
 A successful GMTSAR+ run should:
 
+---
 1. Read the AOI from the input KML file.
 2. Derive the geographic bounding box in EPSG:4326.
 3. Download or organize Sentinel-1 data according to the specified time range and relative orbit.
@@ -326,16 +361,24 @@ A successful GMTSAR+ run should:
 6. Generate interferograms and perform SBAS time-series processing.
 7. Export deformation products in CSV, GeoPackage, KMZ, and XML metadata formats.
 
+For detailed descriptions of the core scripts involved in this workflow  
+(e.g., `pSAR_gmtsar_s1.py`, `meta_creator.py`, `gpkg_wrapper.py`,  
+`sbas_gmtsar.sh`, `vis_kmz.py`, `download_s1.py`, `eof`, `burst2stack`,  
+and `pSAR_srtmdownload.py`), please refer to [`scripts.md`](scripts.md).
 If any required input file, orbit file, Sentinel-1 data product, or processing dependency is missing, the workflow should report the error in the terminal or processing logs.
 
 ---
 
+## 🔐 1. Data Access Configuration
 ## Reproducibility note
 
 The full Sentinel-1 SAR datasets used in the manuscript case studies are not redistributed in this repository because of their large data volume.
 
+Prior to execution, ensure that valid credentials are configured in your `.netrc` file for the following services:
 Instead, this repository provides:
 
+- `urs.earthdata.nasa.gov` — NASA Earthdata  
+- `dataspace.copernicus.eu` — Copernicus Data Space Ecosystem  
 - Docker-based installation instructions
 - Workflow documentation
 - Processing scripts
@@ -348,10 +391,15 @@ These materials allow users and reviewers to understand and reproduce the GMTSAR
 
 ---
 
+## ⚙️ 2. Workflow Overview
 ## Example and test materials
 
+### Processing Workflow
 The repository may include lightweight example and test materials under:
 
+<p align="center">
+  <img src="https://github.com/Bingquan-InSAR/GMTSAR-X/blob/main/docs/figures/workflow.jpg?raw=true" width="700" />
+</p>
 ```text
 examples/
 test_data/
@@ -396,14 +444,17 @@ run_sbas.sh \
 
 ---
 
+## 🛰️ 3. Example Results
 ## Example results
 
 If example figures are included, place them under `docs/figures/` and update the paths below:
 
 ```markdown
 <p align="center">
+  <img src="https://github.com/Bingquan-InSAR/GMTSAR-X/blob/main/docs/figures/Fig1.jpg?raw=true" width="380" />
   <img src="./docs/figures/Fig1.jpg" width="380" />
-  &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;
+  <img src="https://github.com/Bingquan-InSAR/GMTSAR-X/blob/main/docs/figures/Fig4.jpg?raw=true" width="380" />
   <img src="./docs/figures/Fig4.jpg" width="380" />
 </p>
 ```
@@ -461,12 +512,16 @@ For detailed descriptions of the core scripts, see [scripts.md](./scripts.md).
 
 ---
 
+## 📬 4. Contact
 ## Code comments
 
+Development and discussion primarily take place on GitHub.  
+Users are encouraged to open an issue or comment on existing issues or pull requests.
 All comments in the source code should be written in English. If non-English comments are found, they should be translated before release or submission.
 
 ---
 
+## 📚 5. References
 ## Code availability
 
 The source code, Dockerfile, installation instructions, workflow documentation, and command-line examples are publicly available in this repository.
@@ -498,22 +553,30 @@ Users are encouraged to open an issue for:
 ## References
 
 - GMTSAR GitHub Repository  
-  https://github.com/gmtsar/gmtsar
+https://github.com/gmtsar/gmtsar
 
 - pSAR GitHub Repository  
   https://github.com/wpfeng/pSAR
 
 - INSAR_G2S GitHub Repository  
-  https://github.com/dedetmix/INSAR_G2S
+https://github.com/dedetmix/INSAR_G2S
 
 - StaMPS GitHub Repository  
-  https://github.com/dbekaert/StaMPS
+https://github.com/dbekaert/StaMPS
+
+- pSAR GitHub Repository  
+  https://github.com/wpfeng/pSAR
 
 - Li, B., & Chang, L. (Submitted).  
+  **GMTSAR+**: An extended GMTSAR workflow streamlining SBAS products with standardized geospatial outputs.  
+  *Submitted to Environmental Modelling & Software*.
+  
   **GMTSAR+: An extended GMTSAR workflow streamlining SBAS products with standardized geospatial outputs.**
 
 ---
 
+## 🙏 Acknowledgment
 ## Acknowledgment
 
+This work was supported by ESA, PhilSA, and collaborating project partners.
 The authors acknowledge ESA for providing free and open Sentinel-1 data. We also acknowledge the pSAR package developed by Associate Professor Wanpeng Feng, which provides useful scripts and utilities for GMTSAR-based InSAR processing and forms an important technical basis for the development of GMTSAR+.
