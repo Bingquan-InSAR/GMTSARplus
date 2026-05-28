@@ -39,7 +39,7 @@ GMTSARplus/
 | `Dockerfile` | Docker environment definition for GMTSAR+ processing. |
 | `installation.md` | Installation and Docker deployment instructions. |
 | `scripts.md` | Description of the main scripts and workflow components. |
-| `update.md` | Notes on [pSAR-related updates](https://github.com/wpfeng/utilities_of_GMTSAR_from_pSAR), provenance, and modifications. |
+| `update.md` | Notes on [pSAR-related updates](https://github.com/wpfeng/pSAR), provenance, and modifications. |
 | `demo/` | Lightweight demonstration files, including an example AOI and a runnable command script. |
 | `docs/` | Additional figures and documentation. |
 | `Copphil-local/` | Local workflow scripts and processing components used by GMTSAR+. |
