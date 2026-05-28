@@ -121,7 +121,7 @@ The exact output names may vary depending on the processing configuration.
 
 ## Dependencies and computational requirements
 
-GMTSAR+ is distributed through Docker and depends on GMTSAR, GMT, GDAL/OGR, Python utilities, [pSAR-related scripts](https://github.com/wpfeng/utilities_of_GMTSAR_from_pSAR), `burst2stack`, and `eof`.
+GMTSAR+ is distributed through Docker and depends on GMTSAR, GMT, GDAL/OGR, Python utilities, [pSAR-related scripts](https://github.com/wpfeng/pSAR), `burst2stack`, and `eof`.
 
 For real Sentinel-1 SBAS processing, a Linux system with Docker, a multi-core CPU, sufficient memory, and large storage capacity is recommended. The required storage and runtime depend on the number of Sentinel-1 scenes, area size, and multilooking parameters.
 
@@ -139,7 +139,7 @@ This repository provides the source code, Dockerfile, installation instructions,
 
 ## Relation to GMTSAR and pSAR
 
-GMTSAR+ is built on GMTSAR and integrates selected utilities from the [pSAR Python package](https://github.com/wpfeng/pSAR) into a Docker-based SBAS workflow. The [pSAR package](https://github.com/wpfeng/pSAR) was developed by Associate Professor Wanpeng Feng at Sun Yat-sen University and provides important support for GMTSAR-based Sentinel-1 data preparation, interferogram generation, baseline handling, metadata management, and geospatial format conversion.
+GMTSAR+ is built on GMTSAR and integrates selected utilities from the [pSAR Python package](https://github.com/wpfeng/pSAR) into a Docker-based SBAS workflow. The package was developed by Associate Professor Wanpeng Feng at Sun Yat-sen University and provides important support for GMTSAR-based Sentinel-1 data preparation, interferogram generation, baseline handling, metadata management, and geospatial format conversion.
 
 Details on pSAR-related script provenance, updates, and modifications are provided in `update.md`.
 
