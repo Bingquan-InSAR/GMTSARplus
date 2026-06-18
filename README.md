@@ -161,6 +161,9 @@ Please also cite GMTSAR, [pSAR](https://github.com/wpfeng/pSAR), and other third
 
 GMTSAR+ is released under the GNU General Public License v3.0 (GPL-3.0). See the `LICENSE` file for details.
 
+## Acknowledgment
+We thank ESA for financial supporting under the framework of [Copphil](https://copphil.philsa.gov.ph) project.
+
 ---
 
 ## Contact
