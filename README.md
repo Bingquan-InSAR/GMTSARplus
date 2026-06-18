@@ -1,6 +1,6 @@
 # GMTSAR+
 
-**GMTSAR+** is a Docker-based extension of GMTSAR for automated Sentinel-1 SBAS-InSAR processing and standardized geospatial product generation.
+**GMTSAR+** is a Docker-based extension of [GMTSAR](https://github.com/gmtsar/gmtsar) for automated Sentinel-1 SBAS-InSAR processing and standardized geospatial product generation.
 
 It integrates Sentinel-1 data preparation, precise orbit-file acquisition, DEM preparation, GMTSAR-based SBAS time-series processing, and standardized output generation into an end-to-end workflow. The workflow exports deformation products in CSV, GeoPackage, KMZ, and XML metadata formats for GIS analysis, Google Earth visualization, product sharing, and processing traceability.
 
