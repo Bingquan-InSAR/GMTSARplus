@@ -154,7 +154,7 @@ Li, B., and Chang, L. GMTSAR+: An extended GMTSAR workflow streamlining SBAS pro
 ```
 which is currently under review and available at SSRN: https://ssrn.com/abstract=6865947 or http://dx.doi.org/10.2139/ssrn.6865947.
 
-Please also cite GMTSAR, [pSAR](https://github.com/wpfeng/pSAR), and other third-party software packages used in your processing chain where appropriate.
+Please also cite [GMTSAR](https://github.com/gmtsar/gmtsar), [pSAR](https://github.com/wpfeng/pSAR), and other third-party software packages used in your processing chain where appropriate.
 
 ---
 
