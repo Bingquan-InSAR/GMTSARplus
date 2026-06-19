@@ -163,7 +163,7 @@ Please also cite [GMTSAR](https://github.com/gmtsar/gmtsar), [pSAR](https://gith
 GMTSAR+ is released under the GNU General Public License v3.0 (GPL-3.0). See the `LICENSE` file for details.
 
 ## Acknowledgment
-We thank ESA for financial supporting under the framework of [Copphil](https://copphil.philsa.gov.ph) project.
+We thank ESA for their financial support under the framework of [Copphil](https://copphil.philsa.gov.ph) project.
 
 ---
 
