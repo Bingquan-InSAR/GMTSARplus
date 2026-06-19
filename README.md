@@ -139,7 +139,7 @@ This repository provides the source code, Dockerfile, installation instructions,
 
 ## Relation to GMTSAR and pSAR
 
-GMTSAR+ is built on [GMTSAR](https://github.com/gmtsar/gmtsar) and integrates selected utilities from the [pSAR Python package](https://github.com/wpfeng/pSAR) into a Docker-based SBAS workflow. This pSAR Python package was developed by Dr. Wanpeng Feng at Sun Yat-sen University and provides important support for GMTSAR-based Sentinel-1 data preparation, interferogram generation, baseline handling, metadata management, and geospatial format conversion.
+GMTSAR+ is built on [GMTSAR](https://github.com/gmtsar/gmtsar) and integrates selected utilities from the [pSAR Python package](https://github.com/wpfeng/pSAR) into a Docker-based SBAS workflow. This pSAR Python package was developed by Dr. Wanpeng Feng at Sun Yat-sen University who provides important support for GMTSAR-based Sentinel-1 data preparation, interferogram generation, baseline handling, metadata management, and geospatial format conversion.
 
 Details on pSAR-related script provenance, updates, and modifications are provided in `update.md`.
 
