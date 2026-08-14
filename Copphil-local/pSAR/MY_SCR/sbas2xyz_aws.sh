@@ -40,7 +40,15 @@ grep "HEADING_DEG" T0/geo_T*.azi.rsc | awk '{print $2}' > heading
 grep "INCIDENCE" T0/geo_T*.azi.rsc| awk '{print $2}' >incidence
 
 
-ls -tdr ../DATA/S1_ZIP_RAW//*SAFE>zip_list
+for safe in ../DATA/S1_ZIP_RAW//*SAFE; do
+    acquisition_time=$(basename "$safe" |
+        sed -E 's/.*_([0-9]{8}T[0-9]{6})_.*/\1/')
+
+    printf '%s\t%s\n' "$acquisition_time" "$safe"
+done |
+LC_ALL=C sort -k1,1 |
+cut -f2- > zip_list
+
 while read -r line; do
     date=$(echo "$line" | sed -E 's/.*_([0-9]{8})T.*/\1/')
     echo "$date"
