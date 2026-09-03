@@ -69,21 +69,13 @@ Here, `1` denotes VV polarization. The same input files were used for all three 
 
 For an isolated parser test, the same XML/TIFF pair was passed to `make_s1a_tops` before and after normalization:
 
-```bash
-make_s1a_tops input.xml input.tiff test_before 0 > before.log 2>&1
-echo $?
 
-# Apply the empty sliceList normalization.
-
-make_s1a_tops input.xml input.tiff test_after 0 > after.log 2>&1
-echo $?
-```
 
 Observed results:
 
 | Condition | Result |
 |---|---|
-| Without XML normalization | `Segmentation fault`, exit status `139` |
+| Without XML normalization | `Segmentation fault`|
 | With XML normalization | Processing completed successfully |
 
 ## 5. Upstream Verification
