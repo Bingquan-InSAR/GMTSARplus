@@ -94,7 +94,5 @@ Release: v2.0.3
 Commit: b5436cea79885bf95bc49114060b906392741917
 ```
 
-The upstream code sets the `sliceList` count to zero and removes its child elements. No GMTSAR-specific normalization of the empty node was found at this commit. The normalization documented here is therefore retained as a downstream compatibility adjustment in GMTSAR+.
-
 
 
