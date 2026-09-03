@@ -1,88 +1,97 @@
-# pSAR in GMTSAR+
+# GMTSAR+ Provenance and Contribution Boundary
 
-GMTSAR+ is developed on top of the open-source GMTSAR package and builds upon existing efforts to automate GMTSAR-based Sentinel-1 TOPS InSAR processing. In particular, the **pSAR package** developed by **Wanpeng Feng** provides well-tested scripts and utilities for Sentinel-1 data preparation and interferogram generation within the GMTSAR framework, and forms an important technical basis for the development of GMTSAR+.
+## Purpose
 
-pSAR code repository:
-https://github.com/wpfeng/utilities_of_GMTSAR_from_pSAR
+GMTSAR+ is an integration and workflow-extension project built on the
+open-source GMTSAR InSAR processor. This document distinguishes upstream
+software and data from scripts adapted or newly developed for GMTSAR+.
+The classification is based on the source code included in this repository;
+the core GMTSAR and SNAPHU algorithms were not reimplemented.
 
-In GMTSAR+, **selected pSAR scripts are employed for Sentinel-1A/B/C data preparation and interferogram generation**, while orbit-data retrieval, subsequent SBAS time-series inversion, and standardized product generation are performed within the GMTSAR framework as integrated in GMTSAR+. The pSAR scripts used here have been **further adapted and extended** to improve automation, robustness, and suitability for large-scale processing.
+## Contribution categories
 
----
+- **External dependency:** used without changing its source code.
+- **Adapted script:** derived from an upstream script and modified for a
+  GMTSAR+ workflow or data structure.
+- **New script:** added specifically for GMTSAR+.
+- **External data:** input data or auxiliary products obtained from an
+  upstream provider.
 
-## Script Statistics (excluding `.js` and `.png`)
+## Module-level contribution inventory
 
-The current script set includes:
+| Module or tool | Source and status | Function in GMTSAR+ | Authors' contribution | License or terms | Main input -> output | Testing status |
+|---|---|---|---|---|---|---|
+| GMTSAR | Official GMTSAR project; external dependency | Sentinel-1 TOPS preprocessing, interferogram generation, geocoding, and SBAS inversion | Integrated and configured; core algorithms unchanged | GPL-3.0 (upstream) | SAFE, PRM, DEM, pair tables -> interferograms, velocity, and displacement time series | Executed in both case studies |
+| SNAPHU | Upstream phase-unwrapping software; external dependency | Phase unwrapping | Called by the GMTSAR workflow; no algorithmic modification | Stanford license (upstream) | Wrapped interferograms -> unwrapped phase | Executed in both case studies |
+| pSAR | pSAR package by W. Feng; upstream scripts | Sentinel-1 data preparation, baseline handling, SLC preparation, merging, and GMTSAR input generation | Selected scripts are used unchanged; 18 scripts are adapted as listed below | Upstream pSAR terms | SAFE/SLC, orbit, DEM, ROI -> GMTSAR inputs and intermediate products | Integrated in the case-study workflows |
+| burst2safe / burst2stack | ASF upstream tools; external dependency | Burst-level Sentinel-1 data acquisition and SAFE preparation | Used as the burst input component; burst reconstruction remains upstream functionality | Upstream repository terms | AOI, dates, orbit selection -> burst-derived SAFE products | Tested with the reported burst acquisitions |
+| EOF orbit products | ESA/Copernicus auxiliary data; external data | Precise orbit information | Retrieved and associated with acquisitions; retrieval algorithm unchanged | Provider data terms | SAFE names and dates -> EOF orbit files | Used in both case studies |
+| GDAL | Open-source geospatial library; external dependency | Raster conversion, coordinate handling, and GIS packaging | Called by GMTSAR+ export and utility scripts | MIT (upstream) | GRD/GeoTIFF and vector data -> GeoTIFF, GeoPackage, and related products | Used during product generation |
+| GMT | Generic Mapping Tools; external dependency | Gridding, filtering, coordinate conversion, plotting, and trend removal | Called by GMTSAR+ scripts; no changes to GMT | LGPL-3.0 (upstream) | GRD, XYZ, and tabular data -> filtered grids and figures | Used during processing and inspection |
+| Docker | Container platform; integration component | Reproducible runtime and dependency packaging | Dockerfile and runtime organization added for GMTSAR+ deployment | Upstream Docker terms; project files are GPL-3.0 | Configuration and input data -> reproducible processing environment | End-to-end container execution tested |
+| Original pSAR/GMTSAR scripts (29) | Upstream scripts included without source changes | Supporting preparation, baseline, SLC, merging, and geocoding operations | No source-code contribution; retained as upstream components | Respective upstream terms | SAFE/SLC, orbit, DEM -> intermediate GMTSAR products | Used through integrated workflows |
+| Adapted scripts (18) | pSAR- or GMTSAR-derived scripts with identifiable changes | SAFE-directory processing, ROI handling, interferogram preparation, unwrapping, geocoding, and SLC refinement | Modified interfaces, directory handling, burst compatibility, masking, detrending, orbit-date handling, cleanup, and execution logic | Respective upstream terms plus GPL-3.0 for project modifications | SAFE/SLC, orbit, DEM, ROI -> co-registered SLCs and geocoded products | Case-study integration tested |
+| New GMTSAR+ scripts (14) | Added in this repository | Acquisition, burst/SBAS automation, conversion, export, visualization, and error assessment | New workflow, conversion, RMSE, packaging, and visualization code | GPL-3.0 for project code | AOI and InSAR products -> SBAS products and standardized exports | Tested in the reported workflows; no independent CI suite |
 
-| Category  | Number of Scripts |
-|----------|-------------------|
-| Original | 29 |
-| Updated  | 18 |
-| Added    | 14 |
+The 14 new scripts include 12 scripts used in the main workflows and two
+optional StaMPS helpers (`run_stamps.sh` and `mergeforstamps.csh`). The optional
+helpers were not used to support the scientific claims in the manuscript.
+
+## Burst-level GMTSAR compatibility adjustment
+
+`burst2safe` generates valid burst-level SAFE products and source annotation
+XML files. In the tested environment, the conventional GMTSAR frame-assembly
+workflow (`create_frame_tops.csh`) and the corresponding pSAR workflow
+(`GMTSAR_s1_createTOPSframes.csh`) produced an incomplete empty `sliceList`
+node during assembly. The subsequent `make_s1a_tops` stage terminated with a
+segmentation fault.
+
+GMTSAR+ therefore includes the burst-oriented script
+`GMTSAR_s1_createTOPSframes_burst.csh`. This script adapts the frame-assembly
+workflow for burst-level products and normalizes the empty XML node before the
+downstream GMTSAR stage. The adjustment does not alter timing, orbit,
+geolocation, calibration, phase, amplitude, or measurement values. It is a
+GMTSAR-side compatibility adaptation, not a correction to the burst2safe
+scientific processing algorithm.
+
+The detailed XML comparison, reproducible command, and before/after processing
+records are documented in
+[`gmtsar_burst_compatibility.md`](gmtsar_burst_compatibility.md).
+
+## Script statistics
+
+The current repository contains 61 `.py`, `.sh`, and `.csh` scripts (excluding
+`.js` and `.png` files):
+
+| Category | Number |
+|---|---:|
+| Original upstream scripts | 29 |
+| Adapted scripts | 18 |
+| New GMTSAR+ scripts | 14 |
 | **Total** | **61** |
 
-> Counted file types: `.py`, `.sh`, `.csh`  
-> Excluded from the statistics: `.js`, `.png`
+## Updated scripts (18)
 
----
+1. `pSAR_gmtsar_s1.py` - SAFE-directory workflow support, SAFE-compatible parsing, AWS-oriented selection, and robustness improvements.
+2. `merge_batch_ps.csh` - PSI-oriented batch merging support.
+3. `pSAR_S1select_aws.py` - SAFE-directory Sentinel-1 selection for cloud or mounted archives.
+4. `merge_unwrap_geocode_tops_ps.csh` - PSI-oriented merge, unwrap, and geocode support.
+5. `GMTSAR_s1_createTOPSframes.csh` - cleanup robustness improvement.
+6. `create_merge_input_ps.csh` - PSI-oriented merge-input preparation.
+7. `pSAR_gmtsar_s1insar2roi_aws.py` - SAFE-directory ROI workflow support.
+8. `gmtsar_unwrap.py` - SNAPHU configuration and landmask automation improvements.
+9. `GMTSAR_s1_createTOPSframes_burst.csh` - burst-level GMTSAR frame-assembly compatibility.
+10. `pSAR_gmtsar_dir2roi_aws.py` - SAFE-directory ROI workflow support.
+11. `pSAR_gmtsar_s1_aws.py` - SAFE-directory Sentinel-1 processing entry point.
+12. `gmtsar_geocode.csh` - trend removal for unwrapped products.
+13. `pSAR_gmtsar_baseline2intfin.py` - StaMPS-oriented baseline selection logic.
+14. `pSAR_gmtsar_dir2datalist.py` - updated orbit-association and date handling.
+15. `pSAR_gmtsar_geocode_dir.py` - trend removal for unwrapped products.
+16. `pSAR_srtmdownload.py` - safer temporary-file cleanup.
+17. `pSAR_gmtsar_tiff2slcs_paral.py` - executes SLC refinement calls rather than only printing them.
+18. `intf_tops_ps.csh` - PSI-oriented interferogram preparation.
 
-## Updated Scripts (18)
-
-1. `pSAR_gmtsar_s1.py` — SAFE-directory workflow support (replacing ZIP-based handling), SAFE-compatible parsing utilities, AWS-oriented selection, and improved robustness (e.g., library-path handling).
-2. `merge_batch_ps.csh` — PSI-oriented batch merging support.
-3. `pSAR_S1select_aws.py` — SAFE-directory Sentinel-1 selection for cloud/mounted archives.
-4. `merge_unwrap_geocode_tops_ps.csh` — PSI-oriented merge–unwrap–geocode workflow support.
-5. `GMTSAR_s1_createTOPSframes.csh` — robustness improvement for cleanup (`rm -r` → `rm -rf`).
-6. `create_merge_input_ps.csh` — PSI-oriented merge-input preparation support.
-7. `pSAR_gmtsar_s1insar2roi_aws.py` — SAFE-directory ROI workflow support.
-8. `gmtsar_unwrap.py` — updated SNAPHU configuration handling; improved automation (e.g., landmask generation when missing).
-9. `GMTSAR_s1_createTOPSframes_burst.csh` — compatibility with burst2safe-style SAFE products.
-10. `pSAR_gmtsar_dir2roi_aws.py` — SAFE-directory ROI workflow support.
-11. `pSAR_gmtsar_s1_aws.py` — SAFE-directory Sentinel-1 processing entry for cloud/mounted archives.
-12. `gmtsar_geocode.csh` — adds trend removal for unwrapped products (`gmt grdtrend ... -Dunwrap_detrended.grd`).
-13. `pSAR_gmtsar_baseline2intfin.py` — supports stamps-oriented baseline selection logic.
-14. `pSAR_gmtsar_dir2datalist.py` — updated orbit-association interface (including date handling for orbit retrieval).
-15. `pSAR_gmtsar_geocode_dir.py` — adds trend removal for unwrapped products (`gmt grdtrend ... -Dunwrap_detrended.grd`).
-16. `pSAR_srtmdownload.py` — safer cleanup command (`rm %s -f` → `rm -- %s`).
-17. `pSAR_gmtsar_tiff2slcs_paral.py` — ensures intended execution of SLC refinement calls (previously only printed commands).
-18. `intf_tops_ps.csh` — PSI-oriented interferogram preparation support.
-
----
-
-## Original Scripts (29)
-
-- `FWP_preproc_batch_tops_NOesd.csh`
-- `FWP_preproc_batch_tops_esd.csh`
-- `GMTSAR_proj_ra2ll.csh`
-- `gmtsar_filter.csh`
-- `gmtsar_intf_tops_notopo.csh`
-- `merge2trans.csh`
-- `merge_wrap_geocode_tops.csh`
-- `pSAR_gmtsar_ashift_median.py`
-- `pSAR_gmtsar_dir2baseline.py`
-- `pSAR_gmtsar_dir2losvecs.py`
-- `pSAR_gmtsar_dir2refineSLCs.py`
-- `pSAR_gmtsar_los2projvec.py`
-- `pSAR_gmtsar_merge.py`
-- `pSAR_gmtsar_merge2unwrap.py`
-- `pSAR_gmtsar_raw2baseline.py`
-- `pSAR_gmtsar_rawdir2prms.py`
-- `pSAR_gmtsar_refineESD.py`
-- `pSAR_gmtsar_s1insar2roi.py`
-- `pSAR_grabS1orb.py`
-- `pSAR_imgformat.py`
-- `pSAR_rasterio_fillnodata.py`
-- `pSAR_s1zips2orb.py`
-- `slc2amp_MUL.csh`
-- `gmtsar_intf_tops.csh`
-- `gmtsar_merge_redo.py`
-- `gmtsar_preproc_batch_tops_esd.csh`
-- `merge_batch_only.csh`
-- `pSAR_gmtsar_dir2roi.py`
-- `pSAR_gmtsar_refineSLC.py`
-
----
-
-## Added Scripts (14)
+## New scripts (14)
 
 - `3d_times_sbas.py`
 - `download_s1.py`
@@ -99,17 +108,16 @@ The current script set includes:
 - `meta_creator.py`
 - `mergeforstamps.csh`
 
----
-## Module-Level Contribution Inventory
+## Unmodified scripts (29)
 
-| Module or tool | Source | Role in GMTSAR+ | Contribution type | Main modifications or new development | License | Input/Output | Testing status |
-|---|---|---|---|---|---|---|---|
-| GMTSAR | Official GMTSAR repository | Core TOPS, interferogram, SBAS processing | External dependency | No modification to core algorithms | GPL-3.0 | SAFE, PRM, GRD, NetCDF | Tested with Sentinel-1 scenes |
-| pSAR | Wanpeng Feng | Workflow orchestration and utilities | Existing scripts adapted | SAFE-directory and large-scale workflow adaptations | Check upstream license | SAFE, XML, GRD | Tested in Luzon and Cebu |
-| burst2safe | ASF HyP3 | Burst-level SAFE generation | External dependency | Used to generate burst input products | Apache-2.0 | Burst metadata and measurement files to SAFE | Tested with Sentinel-1 burst data |
-| `GMTSAR_s1_createTOPSframes_burst.csh` | GMTSAR+ | Burst-oriented frame assembly | Modified/new script | Adapted frame assembly and normalized empty `sliceList` nodes | Project license | SAFE list to frame-level SAFE | Official and pSAR versions caused segmentation fault; GMTSAR+ version completed |
-| `sbas_gmtsar_burst.sh` | GMTSAR+ | Burst-level SBAS processing | Newly developed | Automates burst-level SBAS workflow | Project license | Interferograms to SBAS products | Tested with Cebu data |
-| GDAL/GMT | External open-source tools | Raster processing and geospatial conversion | External dependencies | Called by GMTSAR+ scripts | Respective licenses | GRD, GeoTIFF, CSV, KMZ, GPKG | Tested during product generation |
-## Acknowledgement (for citation context)
+The 29 unmodified scripts are retained as upstream components. Their complete
+names are listed in the repository file [`update.md`](update.md), together
+with the corresponding script-level update history.
 
-This work acknowledges the development of the **pSAR** package by **Wanpeng Feng**, which provides useful scripts and utilities for GMTSAR-based InSAR processing and has inspired parts of the GMTSAR+ workflow. Users are encouraged to cite the original pSAR repository when appropriate.
+## Reproducibility and licensing note
+
+Project-specific additions and modifications are released under the project
+license. Third-party software, scripts, data, and auxiliary products retain
+their respective upstream licenses or provider terms. Users should consult
+the cited upstream repositories for the authoritative license text and
+version-specific conditions.
