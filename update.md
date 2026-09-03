@@ -100,7 +100,16 @@ The current script set includes:
 - `mergeforstamps.csh`
 
 ---
+## Module-Level Contribution Inventory
 
+| Module or tool | Source | Role in GMTSAR+ | Contribution type | Main modifications or new development | License | Input/Output | Testing status |
+|---|---|---|---|---|---|---|---|
+| GMTSAR | Official GMTSAR repository | Core TOPS, interferogram, SBAS processing | External dependency | No modification to core algorithms | GPL-3.0 | SAFE, PRM, GRD, NetCDF | Tested with Sentinel-1 scenes |
+| pSAR | Wanpeng Feng | Workflow orchestration and utilities | Existing scripts adapted | SAFE-directory and large-scale workflow adaptations | Check upstream license | SAFE, XML, GRD | Tested in Luzon and Cebu |
+| burst2safe | ASF HyP3 | Burst-level SAFE generation | External dependency | Used to generate burst input products | Apache-2.0 | Burst metadata and measurement files to SAFE | Tested with Sentinel-1 burst data |
+| `GMTSAR_s1_createTOPSframes_burst.csh` | GMTSAR+ | Burst-oriented frame assembly | Modified/new script | Adapted frame assembly and normalized empty `sliceList` nodes | Project license | SAFE list to frame-level SAFE | Official and pSAR versions caused segmentation fault; GMTSAR+ version completed |
+| `sbas_gmtsar_burst.sh` | GMTSAR+ | Burst-level SBAS processing | Newly developed | Automates burst-level SBAS workflow | Project license | Interferograms to SBAS products | Tested with Cebu data |
+| GDAL/GMT | External open-source tools | Raster processing and geospatial conversion | External dependencies | Called by GMTSAR+ scripts | Respective licenses | GRD, GeoTIFF, CSV, KMZ, GPKG | Tested during product generation |
 ## Acknowledgement (for citation context)
 
 This work acknowledges the development of the **pSAR** package by **Wanpeng Feng**, which provides useful scripts and utilities for GMTSAR-based InSAR processing and has inspired parts of the GMTSAR+ workflow. Users are encouraged to cite the original pSAR repository when appropriate.
