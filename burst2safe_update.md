@@ -63,25 +63,12 @@ GMTSAR_s1_createTOPSframes_burst.csh \
     /InSAR_worker/PROCESSED/GLOF/cebu/raw
 ```
 
-Here, `1` denotes VV polarization. The same input files were used to test the official GMTSAR script, the pSAR script, and the GMTSAR+ modified script.
-
-For the isolated XML test, the same XML/TIFF pair was passed to `make_s1a_tops` before and after normalization:
-
-```bash
-make_s1a_tops input.xml input.tiff test_before 0 > before.log 2>&1
-echo $?
-
-# Apply the XML normalization described above.
-
-make_s1a_tops input.xml input.tiff test_after 0 > after.log 2>&1
-echo $?
-```
 
 Observed results:
 
 | Condition | Result |
 |---|---|
-| Without XML normalization | `Segmentation fault`, exit status `139` |
+| Without XML normalization | `Segmentation fault` |
 | With XML normalization | Processing completed successfully |
 
 ## 5. Processing Modules
@@ -109,15 +96,5 @@ Commit: b5436cea79885bf95bc49114060b906392741917
 
 The upstream code sets the `sliceList` count to zero and removes its child elements. No GMTSAR-specific normalization of the empty node was found at this commit. The normalization documented here is therefore retained as a downstream compatibility adjustment in GMTSAR+.
 
-## 7. Reproducibility Files
 
-The GitHub repository should contain the following files together with this document:
 
-```text
-before/annotation_example.xml
-after/annotation_example.xml
-logs/before.log
-logs/after.log
-```
-
-Large Sentinel-1 SAFE, TIFF, and ZIP files are not included. The test can be reproduced using the same local burst products and the command provided above.
