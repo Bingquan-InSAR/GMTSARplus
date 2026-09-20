@@ -93,8 +93,10 @@ ahd, _ = read_grd("head_ds.grd")
 
 # Decomposition
 for v, k in nearest_mapping.items():
-    os.system(make_xyz2grd_cmd(args.csv_as, k, "vel_as.grd"))
-    os.system(make_xyz2grd_cmd(args.csv_ds, v, "vel_ds.grd"))
+    as_col, ds_col = (v, k) if base_csv == args.csv_as else (k, v)
+
+    os.system(make_xyz2grd_cmd(args.csv_as, as_col, "vel_as.grd"))
+    os.system(make_xyz2grd_cmd(args.csv_ds, ds_col, "vel_ds.grd"))
     Da, _ = read_grd("vel_as.grd")
     Dd, _ = read_grd("vel_ds.grd")
 
@@ -102,14 +104,14 @@ for v, k in nearest_mapping.items():
     A = np.stack([
         np.stack([np.cos(np.radians(thetaa)), np.sin(np.radians(thetaa)) * np.sin(np.radians(aha - gamma))], axis=-1),
         np.stack([np.cos(np.radians(thetad)), np.sin(np.radians(thetad)) * np.sin(np.radians(ahd - gamma))], axis=-1)
-    ], axis=-1)
+    ], axis=-2)
 
     ATA_inv = np.linalg.inv(np.einsum("...ji,...jk->...ik", A, A))
-    AT_D = np.einsum("...ij,...j->...i", A, np.stack([Da, Dd], axis=-1))
+    AT_D = np.einsum("...ji,...j->...i", A, np.stack([Da, Dd], axis=-1))
     ue = np.einsum("...ij,...j->...i", ATA_inv, AT_D)
 
     save_grd(ue[..., 0], profile, f"Vertical_{k}_{v}.grd")
-    save_grd(ue[..., 1], profile, f"Horizontal_{k}_{v}.grd")
+    save_grd(ue[..., 1], profile, f"Horizontal_{v}_{k}.grd")
 
 # Velocity and STD computation
 def compute_velocity_and_std(grd_list, output_vel, output_std, ref_profile):
