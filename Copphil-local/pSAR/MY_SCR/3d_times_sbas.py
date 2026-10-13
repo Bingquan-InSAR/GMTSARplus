@@ -111,7 +111,7 @@ for v, k in nearest_mapping.items():
     ue = np.einsum("...ij,...j->...i", ATA_inv, AT_D)
 
     save_grd(ue[..., 0], profile, f"Vertical_{k}_{v}.grd")
-    save_grd(ue[..., 1], profile, f"Horizontal_{v}_{k}.grd")
+    save_grd(ue[..., 1], profile, f"Horizontal_{k}_{v}.grd")
 
 # Velocity and STD computation
 def compute_velocity_and_std(grd_list, output_vel, output_std, ref_profile):
