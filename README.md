@@ -150,8 +150,9 @@ Details on pSAR-related script provenance, updates, and modifications are provid
 If you use GMTSAR+ in academic work, please cite the corresponding manuscript once it is published:
 
 ```text
-Li, B., and Chang, L. (2026). GMTSAR+: An extended GMTSAR workflow streamlining SBAS products with standardized geospatial outputs. Computers \& Geosciences vol219, 106289. https://doi.org/10.1016/j.cageo.2026.106289
+Li, B., and Chang, L. (2026). GMTSAR+: An extended GMTSAR workflow streamlining SBAS products with standardized geospatial outputs. Computers & Geosciences vol219, 106289. https://doi.org/10.1016/j.cageo.2026.106289
 ```
+See https://doi.org/10.1016/j.cageo.2026.106289
 
 Please also cite [GMTSAR](https://github.com/gmtsar/gmtsar), [pSAR](https://github.com/wpfeng/pSAR), and other third-party software packages used in your processing chain where appropriate.
 
